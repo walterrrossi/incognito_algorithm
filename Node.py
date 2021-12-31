@@ -3,13 +3,13 @@ class Node:
     id = 0
     is_root = False
     marked = False
-    q_identifier_list = set()
+    q_identifier_list = list()
     generalization_level = []
     parent1 = 0
     parent2 = 0
 
     def __init__(self, id, marked, q_identifiers, generalization_level):
-        self.uid+=1
+        #self.uid+=1
         self.id=id
         self.marked = marked
         self.q_identifier_list = q_identifiers

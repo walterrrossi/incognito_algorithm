@@ -2,17 +2,12 @@ import pandas as pd
 import copy
 from Graph import Graph
 from Node import Node
-from dgh import CsvDGH
-import argparse
 
 df = pd.read_csv("db_100.csv")
 df = df.drop(["id","disease"],1)
-print(df)
+#print(df)
+
 counter = 1
-
-
-
-
 qi_list = ["a"]
 gen = dict()
 gen["a"] = 5
@@ -20,6 +15,8 @@ gen["b"] = 2
 gen["vc"] = 3
 K_anonimity = 2
 graph = Graph()
+# counter rappresenta l'id
+# Il primo vettore identifica quali q identifiers vengono presi, mentre il secondo è il vettore di livelli di generalizzazione
 a = Node(counter, False, [1, 2], [1,0])
 counter+=1
 b = Node(counter, False, [1, 2], [1,1])
@@ -40,7 +37,7 @@ i = Node(counter, False, [3, 1], [1,0])
 counter+=1
 l = Node(counter, False, [3, 1], [0,1])
 counter+=1
-m= Node(counter, False, [3, 1], [1,1])
+m = Node(counter, False, [3, 1], [1,1])
 counter+=1
 
 
@@ -58,15 +55,13 @@ graph.add_node(l)
 graph.add_node(m)
 
 graph.edges=[[1,2],
-                [2,4],
-                [3,4],
-                [5,6],
-                [6,8],
-                [7,8],
-                [9,11],
-                [10,11]]
-
-graph_generation(counter, graph)   
+            [2,4],
+            [3,4],
+            [5,6],
+            [6,8],
+            [7,8],
+            [9,11],
+            [10,11]]
    
 '''
 def core_incognito(graph:Graph):
@@ -115,10 +110,6 @@ core_incognito(graph)
 '''
 
 
-
-
-counter=1
-
 def graph_generation(counter, graph:Graph):
 
     newGraph = Graph()
@@ -136,7 +127,7 @@ def graph_generation(counter, graph:Graph):
                 gl2=graph.nodes[q].generalization_level
                 
                
-                nodeTemp = Node(counter,False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
+                nodeTemp = Node(counter, False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
                 counter+=1
                 
                 nodeTemp.parent1 = graph.nodes[p].id
@@ -155,10 +146,10 @@ def graph_generation(counter, graph:Graph):
                         (graph.edges[e][0]==newGraph.nodes[p].parent2 and graph.edges[e][1]==newGraph.nodes[q].parent2 and \
                          newGraph.nodes[p].parent1 == newGraph.nodes[q].parent1):
 
-                         candidate_edges.append([newGraph.nodes[p].id, newGraph.nodes[q].id])
+                            candidate_edges.append([newGraph.nodes[p].id, newGraph.nodes[q].id])
     
     
-    newGraph.print_nodes()
+    #newGraph.print_nodes()
     
 
     unique_result_edges = []
@@ -167,15 +158,13 @@ def graph_generation(counter, graph:Graph):
         if e not in unique_result_edges:
             unique_result_edges.append(e)
 
-    print(unique_result_edges)
-
-    edges = []
+    #print(unique_result_edges)
 
     edges_to_remove=[]
     
     for d1 in range(len(unique_result_edges)):
         for d2 in range(len(unique_result_edges)): 
-            print(str(d1) + str(d2))
+            #print(str(d1) + str(d2))
             if unique_result_edges[d1][1]==unique_result_edges[d2][0]:
                 edges_to_remove.append([unique_result_edges[d1][0],unique_result_edges[d2][1]])
     
@@ -184,9 +173,12 @@ def graph_generation(counter, graph:Graph):
         if e not in edges_to_remove:
             final_edges.append(e)
     
-    print(unique_result_edges)
-    print(final_edges)
+    #print(unique_result_edges)
+    #print(final_edges)
 
     newGraph.edges=final_edges
 
     newGraph.print_graph()
+
+graph.print_graph()
+graph_generation(counter, graph)   
