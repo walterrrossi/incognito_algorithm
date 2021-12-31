@@ -1,18 +1,20 @@
 import pandas as pd
 import copy
+
+from pandas.core.frame import DataFrame
 from Graph import Graph
 from Node import Node
 
-df = pd.read_csv("db_100.csv")
+df = pd.read_csv("datasets/db_100.csv", dtype=str)
 df = df.drop(["id","disease"],1)
 #print(df)
 
 counter = 1
 qi_list = ["a"]
 gen = dict()
-gen["a"] = 5
-gen["b"] = 2
-gen["vc"] = 3
+gen["zip_code"] = 3
+gen["age"] = 2
+gen["city_birth"] = 2
 K_anonimity = 2
 graph = Graph()
 # counter rappresenta l'id
@@ -180,5 +182,42 @@ def graph_generation(counter, graph:Graph):
 
     newGraph.print_graph()
 
+# Per ora generalizzo in forza bruta, prendo il livello di generalizzazione e 
+# sostituisco con la colonna corrispondente del csv delle generalizzazioni
+def generalize_data(df:DataFrame, generalization_level:dict):
+    for index, level in generalization_level.items():
+        if index == "zip_code":
+            possible_generalizations = pd.read_csv("datasets/zip_code_generalization.csv", header=None, dtype=str)
+            to_generalize = df.loc[:, index]
+            from_generalize = possible_generalizations.iloc[:,[0,level]]
+            for row in to_generalize:
+                for i, pattern in from_generalize.iterrows():
+                    if  str(pattern.iloc[0]) == str(row):
+                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
+            df[index] = to_generalize
+
+        if index == "age":
+            possible_generalizations = pd.read_csv("datasets/age_generalization.csv", header=None, dtype=str)
+            to_generalize = df.loc[:, index]
+            from_generalize = possible_generalizations.iloc[:,[0,level]]
+            for row in to_generalize:
+                for i, pattern in from_generalize.iterrows():
+                    if  str(pattern.iloc[0]) == str(row):
+                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
+            df[index] = to_generalize
+        
+        if index == "city_birth":
+            possible_generalizations = pd.read_csv("datasets/city_birth_generalization.csv", header=None, dtype=str)
+            to_generalize = df.loc[:, index]
+            from_generalize = possible_generalizations.iloc[:,[0,level]]
+            for row in to_generalize:
+                for i, pattern in from_generalize.iterrows():
+                    if  str(pattern.iloc[0]) == str(row):
+                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
+            df[index] = to_generalize
+        
+    print(df)
+
+generalize_data(df, gen)
 graph.print_graph()
 graph_generation(counter, graph)   
