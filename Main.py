@@ -118,17 +118,23 @@ core_incognito(graph)
 
 '''
 
-
+'''Questa funzione serve per inizializzare il primo grafo. Verranno creani per ogni quasi identifiers n nodi
+dove n é il numero totale di generalizzazioni per quel quasi identifier
+es: sex con 2 generalizzazioni (0,1), zipcode con 5 generalizzazioni (0,1,2,3,4) --> (sex,0)(sex,1) con arco (0,1)
+(zip 0)(zip 1)...(zip 5) con arco tra (2,3)(3,4)(...) (i nodi hanno id progressivo da 1)  '''
 def initialize_graph(q_identifiersDict):
     print(q_identifiersDict)
     graph = Graph()
-    
+    #Per ogni quasi identifier
     for q_id in dict(q_identifiersDict):
-        print(q_id)
+        
+        #per ogni livello massimo del quasi identifier creo il range tra questo e 0
         for level in reversed(range(q_identifiersDict[q_id])):
-            print(level)
+            
             node = Node(False, q_id, level)
             id_current = node.id
+
+            #se il livello é 0 non c'é un collegamento con il precendente
             if level !=0:
                 graph.edges.append([id_current+1,id_current])
             if level == 0:
