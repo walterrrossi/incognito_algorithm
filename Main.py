@@ -1,11 +1,14 @@
 import pandas as pd
 import copy
+import time
 
 from pandas.core.frame import DataFrame
 from Graph import Graph
 from Node import Node
 
-df = pd.read_csv("datasets/db_100.csv", dtype=str)
+
+start_time = time.time()
+df = pd.read_csv("datasets/db_10000.csv", dtype=str)
 df = df.drop(["id","disease"],1)
 #print(df)
 
@@ -212,6 +215,32 @@ def graph_generation(counter, graph:Graph):
 
     newGraph.print_graph()
 
+
+def create_generalization_hierarchies(id:str):
+    all_gen = dict()
+    if id == "zip_code":
+        df_all_gen = pd.read_csv("datasets/zip_code_generalization.csv", header=None, dtype=str)
+        all_gen["0"] = df_all_gen.iloc[:,0]
+        all_gen["1"] = df_all_gen.iloc[:,1]
+        all_gen["2"] = df_all_gen.iloc[:,2]
+        all_gen["3"] = df_all_gen.iloc[:,3]
+        all_gen["4"] = df_all_gen.iloc[:,4]
+        all_gen["5"] = df_all_gen.iloc[:,5]
+    if id == "age":
+        df_all_gen = pd.read_csv("datasets/age_generalization.csv", header=None, dtype=str)
+        all_gen["0"] = df_all_gen.iloc[:,0]
+        all_gen["1"] = df_all_gen.iloc[:,1]
+        all_gen["2"] = df_all_gen.iloc[:,2]
+        all_gen["3"] = df_all_gen.iloc[:,3]
+    if id == "city_birth":
+        df_all_gen = pd.read_csv("datasets/city_birth_generalization.csv", header=None, dtype=str)
+        all_gen["0"] = df_all_gen.iloc[:,0]
+        all_gen["1"] = df_all_gen.iloc[:,1]
+        all_gen["2"] = df_all_gen.iloc[:,2]
+        all_gen["3"] = df_all_gen.iloc[:,3]
+    return all_gen
+        
+
 # Per ora generalizzo in forza bruta, prendo il livello di generalizzazione e 
 # sostituisco con la colonna corrispondente del csv delle generalizzazioni
 def generalize_data(df:DataFrame, generalization_level:dict):
@@ -245,6 +274,19 @@ def generalize_data(df:DataFrame, generalization_level:dict):
                     if  str(pattern.iloc[0]) == str(row):
                         to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
             df[index] = to_generalize
+        
+    print(df) 
+
+def generalize_data(df:DataFrame, generalization_level:dict):
+    for index, level in generalization_level.items():
+        all_gen = create_generalization_hierarchies(index)
+        to_generalize = df.loc[:, index]
+        lookup = dict(zip(all_gen["0"], all_gen[str(level)]))
+        for row in to_generalize:
+            for original, anonymized in lookup.items():
+                if str(original) == str(row):
+                    to_generalize.replace(to_replace = str(row), inplace=True, value = str(anonymized))
+        df[index] = to_generalize
         
     print(df)
 
