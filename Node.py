@@ -1,6 +1,6 @@
 class Node:
 
-    id = 0
+    _ID = 0
     is_root = False
     marked = False
     q_identifier_list = list()
@@ -8,9 +8,8 @@ class Node:
     parent1 = 0
     parent2 = 0
 
-    def __init__(self, id, marked, q_identifiers, generalization_level):
-        #self.uid+=1
-        self.id=id
+    def __init__(self, marked, q_identifiers, generalization_level):
+        self.id = self._ID; self.__class__._ID += 1
         self.marked = marked
         self.q_identifier_list = q_identifiers
         self.generalization_level = generalization_level

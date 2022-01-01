@@ -9,8 +9,10 @@ df = pd.read_csv("datasets/db_100.csv", dtype=str)
 df = df.drop(["id","disease"],1)
 #print(df)
 
-counter = 1
-qi_list = ["a"]
+q_identifiersList = [1, 2, 3]
+generalization_levels = [2,6,4]
+q_identifiersDict = {1:2, 2:6, 3:4}
+
 gen = dict()
 gen["zip_code"] = 3
 gen["age"] = 2
@@ -19,28 +21,28 @@ K_anonimity = 2
 graph = Graph()
 # counter rappresenta l'id
 # Il primo vettore identifica quali q identifiers vengono presi, mentre il secondo è il vettore di livelli di generalizzazione
-a = Node(counter, False, [1, 2], [1,0])
-counter+=1
-b = Node(counter, False, [1, 2], [1,1])
-counter+=1
-c = Node(counter, False, [1, 2], [0,2])
-counter+=1
-d = Node(counter, False, [1, 2], [1,2])
-counter+=1
-e = Node(counter, False, [3, 2], [1,0])
-counter+=1
-f = Node(counter, False, [3, 2], [1,1])
-counter+=1
-g = Node(counter, False, [3, 2], [0,2])
-counter+=1
-h = Node(counter, False, [3, 2], [1,2])
-counter+=1
-i = Node(counter, False, [3, 1], [1,0])
-counter+=1
-l = Node(counter, False, [3, 1], [0,1])
-counter+=1
-m = Node(counter, False, [3, 1], [1,1])
-counter+=1
+a = Node(False, [1, 2], [1,0])
+
+b = Node(False, [1, 2], [1,1])
+
+c = Node(False, [1, 2], [0,2])
+
+d = Node(False, [1, 2], [1,2])
+
+e = Node(False, [3, 2], [1,0])
+
+f = Node(False, [3, 2], [1,1])
+
+g = Node(False, [3, 2], [0,2])
+
+h = Node(False, [3, 2], [1,2])
+
+i = Node(False, [3, 1], [1,0])
+
+l = Node(False, [3, 1], [0,1])
+
+m = Node(False, [3, 1], [1,1])
+
 
 
 
@@ -64,6 +66,8 @@ graph.edges=[[1,2],
             [7,8],
             [9,11],
             [10,11]]
+
+
    
 '''
 def core_incognito(graph:Graph):
@@ -110,6 +114,32 @@ for qi in qi_list:
 core_incognito(graph)
 
 '''
+
+
+def initialize_graph(q_identifiersDict):
+    print(q_identifiersDict)
+    graph = Graph()
+    
+    for q_id in dict(q_identifiersDict):
+        print(q_id)
+        for level in reversed(range(q_identifiersDict[q_id])):
+            print(level)
+            node = Node(False, q_id, level)
+            id_current = node.id
+            if level !=0:
+                graph.edges.append([id_current+1,id_current])
+            if level == 0:
+                node.set_is_root(True)
+            graph.add_node(node)
+    return graph
+
+graph.print_graph()
+
+prova_primo_graph = Graph()
+prova_primo_graph = initialize_graph(q_identifiersDict)
+
+prova_primo_graph.print_graph()
+
 
 
 def graph_generation(counter, graph:Graph):
@@ -219,5 +249,8 @@ def generalize_data(df:DataFrame, generalization_level:dict):
     print(df)
 
 generalize_data(df, gen)
-graph.print_graph()
-graph_generation(counter, graph)   
+'''graph.print_graph()'''
+'''graph_generation(counter, graph)'''
+
+
+
