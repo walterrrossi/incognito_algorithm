@@ -1,6 +1,7 @@
 import pandas as pd
 import copy
 import time
+import collections
 
 from pandas.core.frame import DataFrame
 from Graph import Graph
@@ -10,16 +11,13 @@ from Node import Node
 start_time = time.time()
 df = pd.read_csv("datasets/db_10000.csv", dtype=str)
 df = df.drop(["id","disease"],1)
-#print(df)
 
-q_identifiersList = [1, 2, 3]
-generalization_levels = [2,6,4]
-q_identifiersDict = {1:2, 2:6, 3:4}
+q_identifiers_list = [1, 2, 3]
+generalization_levels = [4, 4, 6]
+q_identifiers_dict = dict(zip(q_identifiers_list, generalization_levels))
+q_identifiers_tag_id_dict = {"age" : 1, "city_birth" : 2 , "zip_code" : 3}
 
-gen = dict()
-gen["zip_code"] = 3
-gen["age"] = 2
-gen["city_birth"] = 2
+gen = {"zip_code" : 3, "age" : 2, "city_birth" : 2}
 K_anonimity = 2
 graph = Graph()
 # counter rappresenta l'id
@@ -122,14 +120,14 @@ core_incognito(graph)
 dove n é il numero totale di generalizzazioni per quel quasi identifier
 es: sex con 2 generalizzazioni (0,1), zipcode con 5 generalizzazioni (0,1,2,3,4) --> (sex,0)(sex,1) con arco (0,1)
 (zip 0)(zip 1)...(zip 5) con arco tra (2,3)(3,4)(...) (i nodi hanno id progressivo da 1)  '''
-def initialize_graph(q_identifiersDict):
-    print(q_identifiersDict)
+def initialize_graph(q_identifiers_dict):
+    print(q_identifiers_dict)
     graph = Graph()
     #Per ogni quasi identifier
-    for q_id in dict(q_identifiersDict):
+    for q_id in dict(q_identifiers_dict):
         
         #per ogni livello massimo del quasi identifier creo il range tra questo e 0
-        for level in reversed(range(q_identifiersDict[q_id])):
+        for level in reversed(range(q_identifiers_dict[q_id])):
             
             node = Node(False, q_id, level)
             id_current = node.id
@@ -141,14 +139,6 @@ def initialize_graph(q_identifiersDict):
                 node.set_is_root(True)
             graph.add_node(node)
     return graph
-
-graph.print_graph()
-
-prova_primo_graph = Graph()
-prova_primo_graph = initialize_graph(q_identifiersDict)
-
-prova_primo_graph.print_graph()
-
 
 
 def graph_generation(counter, graph:Graph):
@@ -190,8 +180,6 @@ def graph_generation(counter, graph:Graph):
                             candidate_edges.append([newGraph.nodes[p].id, newGraph.nodes[q].id])
     
     
-    #newGraph.print_nodes()
-    
 
     unique_result_edges = []
     
@@ -199,7 +187,6 @@ def graph_generation(counter, graph:Graph):
         if e not in unique_result_edges:
             unique_result_edges.append(e)
 
-    #print(unique_result_edges)
 
     edges_to_remove=[]
     
@@ -214,47 +201,37 @@ def graph_generation(counter, graph:Graph):
         if e not in edges_to_remove:
             final_edges.append(e)
     
-    #print(unique_result_edges)
-    #print(final_edges)
-
     newGraph.edges=final_edges
 
     newGraph.print_graph()
 
-
-def create_generalization_hierarchies(id:str):
-    ''' TODO: Da fare dinamico una volta scelto il dataset, bisogna prendere il dizionario che dice quanti livelli di generalizzazione 
-     si hanno per ciascun QI e poi usando un pattern per le stringhe che accedono ai file, inserisco il nome del QI e in base a quanti livelli ho
-     compilo il mio dizionario di tutte le generalizzazioni '''
-    all_gen = dict()
-    if id == "zip_code":
-        df_all_gen = pd.read_csv("datasets/zip_code_generalization.csv", header=None, dtype=str)
-        all_gen["0"] = df_all_gen.iloc[:,0]
-        all_gen["1"] = df_all_gen.iloc[:,1]
-        all_gen["2"] = df_all_gen.iloc[:,2]
-        all_gen["3"] = df_all_gen.iloc[:,3]
-        all_gen["4"] = df_all_gen.iloc[:,4]
-        all_gen["5"] = df_all_gen.iloc[:,5]
-    if id == "age":
-        df_all_gen = pd.read_csv("datasets/age_generalization.csv", header=None, dtype=str)
-        all_gen["0"] = df_all_gen.iloc[:,0]
-        all_gen["1"] = df_all_gen.iloc[:,1]
-        all_gen["2"] = df_all_gen.iloc[:,2]
-        all_gen["3"] = df_all_gen.iloc[:,3]
-    if id == "city_birth":
-        df_all_gen = pd.read_csv("datasets/city_birth_generalization.csv", header=None, dtype=str)
-        all_gen["0"] = df_all_gen.iloc[:,0]
-        all_gen["1"] = df_all_gen.iloc[:,1]
-        all_gen["2"] = df_all_gen.iloc[:,2]
-        all_gen["3"] = df_all_gen.iloc[:,3]
+'''
+    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
+    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
+    valore la lista di tutte le generalizzazioni di quel livello
+'''
+def create_generalization_hierarchies(generalization_level:dict):
+    all_gen = collections.defaultdict(dict)
+    for tag, level in generalization_level.items():
+        path = str("datasets/{}_generalization.csv").format(tag)
+        df_all_gen = pd.read_csv(path, header=None, dtype=str)
+        for key, qi_id in q_identifiers_tag_id_dict.items():
+            if key == tag:
+                for i in range(0, q_identifiers_dict[qi_id]):
+                    all_gen[tag][i] = df_all_gen.iloc[:,i]
+        
     return all_gen
         
-
-def generalize_data(df:DataFrame, generalization_level:dict):
-    for index, level in generalization_level.items():
-        all_gen = create_generalization_hierarchies(index)
+'''
+    Questa funzione prende in input il df, le generalizzazioni richieste e un dizionario contenente tutte le generalizzazioni per ogni QI.
+    Cicla su tutte le coppie chiavi-valore presenti nel dizionario delle generalizzazioni richieste e in base al livello di generalizzazione
+    richiesto prende dalla tabella contenente tutte le gen. la prima colonna(valore originale) e la colonna del livello richiesto.
+    A questo punto sostituisce con il valore anonimizzato
+'''
+def generalize_data(df:DataFrame, generalization_levels:dict, all_generalizations:dict):
+    for index, level in generalization_levels.items():
         to_generalize = df.loc[:, index]
-        lookup = dict(zip(all_gen["0"], all_gen[str(level)]))
+        lookup = dict(zip(all_generalizations[index][0], all_generalizations[index][level]))
         for row in to_generalize:
             for original, anonymized in lookup.items():
                 if str(original) == str(row):
@@ -263,9 +240,8 @@ def generalize_data(df:DataFrame, generalization_level:dict):
         
     print(df)
 
-generalize_data(df, gen)
+all_generalizations = create_generalization_hierarchies(gen)
+generalize_data(df, gen, all_generalizations)
 '''graph.print_graph()'''
 '''graph_generation(counter, graph)'''
-
-
-
+print("Execution time: "+str(time.time() - start_time)+"s")
