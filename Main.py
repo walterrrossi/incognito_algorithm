@@ -217,6 +217,9 @@ def graph_generation(counter, graph:Graph):
 
 
 def create_generalization_hierarchies(id:str):
+    ''' TODO: Da fare dinamico una volta scelto il dataset, bisogna prendere il dizionario che dice quanti livelli di generalizzazione 
+     si hanno per ciascun QI e poi usando un pattern per le stringhe che accedono ai file, inserisco il nome del QI e in base a quanti livelli ho
+     compilo il mio dizionario di tutte le generalizzazioni '''
     all_gen = dict()
     if id == "zip_code":
         df_all_gen = pd.read_csv("datasets/zip_code_generalization.csv", header=None, dtype=str)
@@ -240,42 +243,6 @@ def create_generalization_hierarchies(id:str):
         all_gen["3"] = df_all_gen.iloc[:,3]
     return all_gen
         
-
-# Per ora generalizzo in forza bruta, prendo il livello di generalizzazione e 
-# sostituisco con la colonna corrispondente del csv delle generalizzazioni
-def generalize_data(df:DataFrame, generalization_level:dict):
-    for index, level in generalization_level.items():
-        if index == "zip_code":
-            possible_generalizations = pd.read_csv("datasets/zip_code_generalization.csv", header=None, dtype=str)
-            to_generalize = df.loc[:, index]
-            from_generalize = possible_generalizations.iloc[:,[0,level]]
-            for row in to_generalize:
-                for i, pattern in from_generalize.iterrows():
-                    if  str(pattern.iloc[0]) == str(row):
-                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
-            df[index] = to_generalize
-
-        if index == "age":
-            possible_generalizations = pd.read_csv("datasets/age_generalization.csv", header=None, dtype=str)
-            to_generalize = df.loc[:, index]
-            from_generalize = possible_generalizations.iloc[:,[0,level]]
-            for row in to_generalize:
-                for i, pattern in from_generalize.iterrows():
-                    if  str(pattern.iloc[0]) == str(row):
-                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
-            df[index] = to_generalize
-        
-        if index == "city_birth":
-            possible_generalizations = pd.read_csv("datasets/city_birth_generalization.csv", header=None, dtype=str)
-            to_generalize = df.loc[:, index]
-            from_generalize = possible_generalizations.iloc[:,[0,level]]
-            for row in to_generalize:
-                for i, pattern in from_generalize.iterrows():
-                    if  str(pattern.iloc[0]) == str(row):
-                        to_generalize.replace(to_replace = str(row), inplace=True, value = str(pattern.iloc[1]))
-            df[index] = to_generalize
-        
-    print(df) 
 
 def generalize_data(df:DataFrame, generalization_level:dict):
     for index, level in generalization_level.items():
