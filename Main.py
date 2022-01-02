@@ -2,6 +2,7 @@ import pandas as pd
 import copy
 import time
 import collections
+import Frequency_list_attempt
 
 from pandas.core.frame import DataFrame
 from Graph import Graph
@@ -69,53 +70,6 @@ graph.edges=[[1,2],
             [10,11]]
 
 
-   
-'''
-def core_incognito(graph:Graph):
-
-    queue = []
-    
-    for i in range(0, len(graph.q_identifier_list)):
-        s = dict()
-        s = copy.copy(graph.nodes)
-        roots = list()
-        for node in graph.nodes.values():
-            if node.is_root == True:
-                roots.append(node)
-        queue.extend(roots)
-    print(queue)
-
-    while queue != False:
-        node = queue.pop()
-        if node.marked == False:
-            if node.is_root == True:
-                # TODO: Calcolare frequency set dalla tabella
-                frequency_set
-            else:
-                # TODO: Calcolare frequency set dai parenti del nodo
-                frequency_set
-        # TODO: Controllare la k-anonimity partendo dal frequency set
-        # Da definire la k-anonymity
-        k = 0
-        if(k>=K_anonimity):
-            # TODO: markare il nodo stesso e i nodi vicini
-            pass
-        else:
-            # ci vuole l'indice non node
-            # TODO: cancellare il nodo stesso (anche edge collegati)
-            # TODO: inserire le dirette generalizzazioni del nodo nella coda       
-            pass
-    # TODO: Graph Generation per passare al grafo successivo
-
-
-for qi in qi_list:
-    graph = Graph()
-    graph.initialize(qi, gen)
-
-core_incognito(graph)
-
-'''
-
 '''Questa funzione serve per inizializzare il primo grafo. Verranno creani per ogni quasi identifiers n nodi
 dove n é il numero totale di generalizzazioni per quel quasi identifier
 es: sex con 2 generalizzazioni (0,1), zipcode con 5 generalizzazioni (0,1,2,3,4) --> (sex,0)(sex,1) con arco (0,1)
@@ -141,7 +95,7 @@ def initialize_graph(q_identifiers_dict):
     return graph
 
 
-def graph_generation(counter, graph:Graph):
+def graph_generation(graph:Graph):
 
     newGraph = Graph()
 
@@ -229,6 +183,7 @@ def create_generalization_hierarchies(generalization_level:dict):
     A questo punto sostituisce con il valore anonimizzato
 '''
 def generalize_data(df:DataFrame, generalization_levels:dict, all_generalizations:dict):
+    df_gen = copy.copy(df)
     for index, level in generalization_levels.items():
         to_generalize = df.loc[:, index]
         lookup = dict(zip(all_generalizations[index][0], all_generalizations[index][level]))
@@ -238,10 +193,63 @@ def generalize_data(df:DataFrame, generalization_levels:dict, all_generalization
                     to_generalize.replace(to_replace = str(row), inplace=True, value = str(anonymized))
         df[index] = to_generalize
         
-    print(df)
+    return df_gen
+
+
+def core_incognito(graph:Graph):
+
+    queue = []
+    
+    for i in range(0, len(graph.q_identifier_list)):
+        s = copy.copy(graph.nodes)
+        roots = []
+        #TODO roots in graph_generation
+        #TODO sort the nodes on the deep of the nodes - Alessio
+        for node in graph.nodes:
+            if node.is_root == True:
+                roots.append(node)
+        queue.extend(roots)
+
+        while queue != False:
+            node = queue.pop()
+            if node.marked == False:
+                q_id_dict = dict(zip(node.q_identifier_list, node.generalization_level))
+                df_gen = generalize_data(df, q_id_dict, all_generalizations)
+                if node.is_root == True:
+                    # TODO: Calcolare frequency set dalla tabella
+                    frequency_set = Frequency_list_attempt.get_frequency_list_pandas(df_gen, node.q_identifiers_list)
+                else:
+                    # TODO: Calcolare frequency set dai parenti del nodo
+
+                    new_df = df_gen.set_index('key').join(frequency_set_parent('key'))
+                    
+                    frequency_set = Frequency_list_attempt.get_frequency_list_pandas(df_gen, node.q_identifiers_list)
+            # TODO: Controllare la k-anonimity partendo dal frequency set
+            # Da definire la k-anonymity
+            k = 0
+            if(k>=K_anonimity):
+                # TODO: markare il nodo stesso e i nodi vicini - Alessio
+                graph.take_node(node.id).set_marked(True)
+                s.take_node(node.id).set_marked(True)
+                for edge in graph.edges:
+                    if edge[0]==node.id:
+                        graph.take_node(edge[1]).set_marked(True)
+            else:
+                # ci vuole l'indice non node
+                # TODO: cancellare il nodo stesso -> da provare
+                s = filter(lambda n: n.id != node.id, s)
+                # TODO: inserire le dirette generalizzazioni del nodo nella coda
+                for edge in graph.edges:
+                    if edge[0]==node.id:
+                        queue.append(graph.take_node(edge[1]))
+        # TODO: Graph Generation per passare al grafo successivo (da passare le due liste, nodi e grafi)
+        graph2 = graph_generation(graph)
+
+
+core_incognito(graph)
 
 all_generalizations = create_generalization_hierarchies(gen)
-generalize_data(df, gen, all_generalizations)
+df_gen = generalize_data(df, gen, all_generalizations)
 '''graph.print_graph()'''
 '''graph_generation(counter, graph)'''
 print("Execution time: "+str(time.time() - start_time)+"s")

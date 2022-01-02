@@ -7,7 +7,7 @@ from Graph import Graph
 from Node import Node
 
 start_time = time.time()
-df = pd.read_csv("datasets/db_100.csv", dtype=str)
+df = pd.read_csv("datasets/db_10000.csv", dtype=str)
 df = df.drop(["id","disease"],1)
 
 print("---------------------------------------------------")
@@ -91,9 +91,12 @@ root_node_qi = ["age", "zip_code", "city_birth"]
 # getting frequency list
 
 [freq_list, counter] = get_frequency_list(df, root_node_qi)
-#[freq_list, counter] = get_frequency_list_pandas(df, root_node_qi)
+print("Execution time 1: "+str(time.time() - start_time)+"s")
+start_time = time.time()
+[freq_list, counter] = get_frequency_list_pandas(df, root_node_qi)
+print("Execution time 2: "+str(time.time() - start_time)+"s")
 
-print(freq_list)
+#print(freq_list)
 print("\n")
 print("unique tuples: " + str(counter))
 print("-----------------------------------------------------")
@@ -132,4 +135,3 @@ print("-----------------------------------------------------")
 
 '''
 
-print("Execution time: "+str(time.time() - start_time)+"s")

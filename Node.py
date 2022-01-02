@@ -3,7 +3,7 @@ class Node:
     _ID = 0
     is_root = False
     marked = False
-    q_identifier_list = list()
+    q_identifier_list = []
     generalization_level = []
     parent1 = 0
     parent2 = 0
