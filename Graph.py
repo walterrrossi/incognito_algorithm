@@ -29,3 +29,12 @@ class Graph:
         for n in self.nodes:
             if n.id == id:
                 return n
+    
+    def check_roots(self):
+        for node in self.nodes:
+            root = True
+            for edge in self.edges:
+                if node.id==edge[1]:
+                    root = False
+            node.set_is_root(root)
+                
