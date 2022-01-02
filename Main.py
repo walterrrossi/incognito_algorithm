@@ -112,8 +112,8 @@ def graph_generation(graph:Graph):
                 gl2=graph.nodes[q].generalization_level
                 
                
-                nodeTemp = Node(counter, False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
-                counter+=1
+                nodeTemp = Node(False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
+                
                 
                 nodeTemp.parent1 = graph.nodes[p].id
                 nodeTemp.parent2 = graph.nodes[q].id
