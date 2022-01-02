@@ -84,40 +84,40 @@ def initialize_graph(q_identifiers_dict):
     return graph
 
 
-def graph_generation(graph:Graph):
+def graph_generation(s:list, edges:list):
 
     newGraph = Graph()
 
 
-    for p in range(len(graph.nodes)):
-        for q in range(len(graph.nodes)):
-            if list(graph.nodes[p].q_identifier_list)[:-1]==list(graph.nodes[q].q_identifier_list)[:-1] and \
-                list(graph.nodes[p].generalization_level)[:-1]==list(graph.nodes[q].generalization_level)[:-1] and \
-                graph.nodes[p].q_identifier_list[-1] < graph.nodes[q].q_identifier_list[-1]:
+    for p in range(len(s)):
+        for q in range(len(s)):
+            if list(s[p].q_identifier_list)[:-1]==list(s[q].q_identifier_list)[:-1] and \
+                list(s[p].generalization_level)[:-1]==list(s[q].generalization_level)[:-1] and \
+                s[p].q_identifier_list[-1] < s[q].q_identifier_list[-1]:
                 
-                qi1=graph.nodes[p].q_identifier_list
-                qi2=graph.nodes[q].q_identifier_list
-                gl1=graph.nodes[p].generalization_level
-                gl2=graph.nodes[q].generalization_level
+                qi1=s[p].q_identifier_list
+                qi2=s[q].q_identifier_list
+                gl1=s[p].generalization_level
+                gl2=s[q].generalization_level
                 
                
                 nodeTemp = Node(False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
                 
                 
-                nodeTemp.parent1 = graph.nodes[p].id
-                nodeTemp.parent2 = graph.nodes[q].id
+                nodeTemp.parent1 = s[p].id
+                nodeTemp.parent2 = s[q].id
                 newGraph.add_node(nodeTemp)
         
     candidate_edges=[]
     for p in range(len(newGraph.nodes)):
         for q in range(len(newGraph.nodes)):
-            for e in range(len(graph.edges)):
-                for f in range(len(graph.edges)):
-                    if (graph.edges[e][0]==newGraph.nodes[p].parent1 and graph.edges[e][1]==newGraph.nodes[q].parent1 and \
-                        graph.edges[f][0]==newGraph.nodes[p].parent2 and graph.edges[f][1]==newGraph.nodes[q].parent2) or \
-                        (graph.edges[e][0]==newGraph.nodes[p].parent1 and graph.edges[e][1]==newGraph.nodes[q].parent1 and \
+            for e in range(len(edges)):
+                for f in range(len(edges)):
+                    if (edges[e][0]==newGraph.nodes[p].parent1 and edges[e][1]==newGraph.nodes[q].parent1 and \
+                        edges[f][0]==newGraph.nodes[p].parent2 and edges[f][1]==newGraph.nodes[q].parent2) or \
+                        (edges[e][0]==newGraph.nodes[p].parent1 and edges[e][1]==newGraph.nodes[q].parent1 and \
                         newGraph.nodes[p].parent2 == newGraph.nodes[q].parent2) or \
-                        (graph.edges[e][0]==newGraph.nodes[p].parent2 and graph.edges[e][1]==newGraph.nodes[q].parent2 and \
+                        (edges[e][0]==newGraph.nodes[p].parent2 and edges[e][1]==newGraph.nodes[q].parent2 and \
                          newGraph.nodes[p].parent1 == newGraph.nodes[q].parent1):
 
                             candidate_edges.append([newGraph.nodes[p].id, newGraph.nodes[q].id])
@@ -275,7 +275,7 @@ def core_incognito(graph:Graph):
                     if edge[0]==node.id:
                         queue.append(graph.take_node(edge[1]))
         # TODO: Graph Generation per passare al grafo successivo (da passare le due liste, nodi e grafi)
-        graph2 = graph_generation(graph)
+        graph2 = graph_generation(s, graph.edges)
 
 
 core_incognito(graph) """
