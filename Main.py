@@ -24,29 +24,16 @@ graph = Graph()
 # counter rappresenta l'id
 # Il primo vettore identifica quali q identifiers vengono presi, mentre il secondo è il vettore di livelli di generalizzazione
 a = Node(False, [1, 2], [1,0])
-
 b = Node(False, [1, 2], [1,1])
-
 c = Node(False, [1, 2], [0,2])
-
 d = Node(False, [1, 2], [1,2])
-
 e = Node(False, [3, 2], [1,0])
-
 f = Node(False, [3, 2], [1,1])
-
 g = Node(False, [3, 2], [0,2])
-
 h = Node(False, [3, 2], [1,2])
-
 i = Node(False, [3, 1], [1,0])
-
 l = Node(False, [3, 1], [0,1])
-
 m = Node(False, [3, 1], [1,1])
-
-
-
 
 graph.add_node(a)
 graph.add_node(b)
@@ -60,14 +47,14 @@ graph.add_node(i)
 graph.add_node(l)
 graph.add_node(m)
 
-graph.edges=[[1,2],
-            [2,4],
-            [3,4],
-            [5,6],
-            [6,8],
-            [7,8],
-            [9,11],
-            [10,11]]
+graph.edges=[[0,1],
+            [1,3],
+            [2,3],
+            [4,5],
+            [5,7],
+            [6,7],
+            [8,10],
+            [9,10]]
 
 
 '''
@@ -77,7 +64,7 @@ graph.edges=[[1,2],
     (zip 0)(zip 1)...(zip 5) con arco tra (2,3)(3,4)(...) (i nodi hanno id progressivo da 1)
 '''
 def initialize_graph(q_identifiers_dict):
-    print(q_identifiers_dict)
+    #print(q_identifiers_dict)
     graph = Graph()
     #Per ogni quasi identifier
     for q_id in dict(q_identifiers_dict):
@@ -159,7 +146,10 @@ def graph_generation(graph:Graph):
     
     newGraph.edges=final_edges
 
-    newGraph.print_graph()
+    #Setta i nodi roots
+    newGraph.check_roots()
+    
+    #newGraph.print_graph()
 
 '''
     Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
@@ -270,9 +260,9 @@ def core_incognito(graph:Graph):
             # Da definire la k-anonymity
             k = 0
             if(k>=K_anonimity):
-                # TODO: markare il nodo stesso e i nodi vicini - Alessio
+                # marka il nodo stesso e i nodi vicini 
                 graph.take_node(node.id).set_marked(True)
-                s.take_node(node.id).set_marked(True)
+                #s.take_node(node.id).set_marked(True) # NON VA, s é una lista non un grafo
                 for edge in graph.edges:
                     if edge[0]==node.id:
                         graph.take_node(edge[1]).set_marked(True)
@@ -290,6 +280,6 @@ def core_incognito(graph:Graph):
 
 core_incognito(graph) """
 
-all_generalizations = create_generalization_hierarchies(gen)
-df_gen = generalize_data(df, gen, all_generalizations)
-print("Execution time: "+str(time.time() - start_time)+"s")
+#all_generalizations = create_generalization_hierarchies(gen)
+#df_gen = generalize_data(df, gen, all_generalizations)
+#print("Execution time: "+str(time.time() - start_time)+"s")
