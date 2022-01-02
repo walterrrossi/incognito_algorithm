@@ -70,10 +70,12 @@ graph.edges=[[1,2],
             [10,11]]
 
 
-'''Questa funzione serve per inizializzare il primo grafo. Verranno creani per ogni quasi identifiers n nodi
-dove n é il numero totale di generalizzazioni per quel quasi identifier
-es: sex con 2 generalizzazioni (0,1), zipcode con 5 generalizzazioni (0,1,2,3,4) --> (sex,0)(sex,1) con arco (0,1)
-(zip 0)(zip 1)...(zip 5) con arco tra (2,3)(3,4)(...) (i nodi hanno id progressivo da 1)  '''
+'''
+    Questa funzione serve per inizializzare il primo grafo. Verranno creani per ogni quasi identifiers n nodi
+    dove n é il numero totale di generalizzazioni per quel quasi identifier
+    es: sex con 2 generalizzazioni (0,1), zipcode con 5 generalizzazioni (0,1,2,3,4) --> (sex,0)(sex,1) con arco (0,1)
+    (zip 0)(zip 1)...(zip 5) con arco tra (2,3)(3,4)(...) (i nodi hanno id progressivo da 1)
+'''
 def initialize_graph(q_identifiers_dict):
     print(q_identifiers_dict)
     graph = Graph()
@@ -164,7 +166,7 @@ def graph_generation(graph:Graph):
     con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
     valore la lista di tutte le generalizzazioni di quel livello
 '''
-def create_generalization_hierarchies(generalization_level:dict):
+""" def create_generalization_hierarchies(generalization_level:dict):
     all_gen = collections.defaultdict(dict)
     for tag, level in generalization_level.items():
         path = str("datasets/{}_generalization.csv").format(tag)
@@ -174,15 +176,33 @@ def create_generalization_hierarchies(generalization_level:dict):
                 for i in range(0, q_identifiers_dict[qi_id]):
                     all_gen[tag][i] = df_all_gen.iloc[:,i]
         
+    return all_gen """
+
+'''
+    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
+    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
+    valore la lista di tutte le generalizzazioni di quel livello
+'''
+def create_generalization_hierarchies(generalization_level:dict):
+    all_gen = pd.DataFrame()
+    for tag, level in generalization_level.items():
+        path = str("datasets/{}_generalization.csv").format(tag)
+        df_all_gen = pd.read_csv(path, header=None, dtype=str)
+        for key, qi_id in q_identifiers_tag_id_dict.items():
+            if key == tag:
+                for i in range(0, q_identifiers_dict[qi_id]):
+                    column_name = str("{}{}").format(key,i)
+                    all_gen[column_name] = df_all_gen.iloc[:,i]
+        
     return all_gen
         
-'''
+""" '''
     Questa funzione prende in input il df, le generalizzazioni richieste e un dizionario contenente tutte le generalizzazioni per ogni QI.
     Cicla su tutte le coppie chiavi-valore presenti nel dizionario delle generalizzazioni richieste e in base al livello di generalizzazione
     richiesto prende dalla tabella contenente tutte le gen. la prima colonna(valore originale) e la colonna del livello richiesto.
     A questo punto sostituisce con il valore anonimizzato
 '''
-def generalize_data(df:DataFrame, generalization_levels:dict, all_generalizations:dict):
+def generalize_data(df:DataFrame, generalization_levels:dict, all_generalizations:DataFrame):
     df_gen = copy.copy(df)
     for index, level in generalization_levels.items():
         to_generalize = df.loc[:, index]
@@ -194,8 +214,30 @@ def generalize_data(df:DataFrame, generalization_levels:dict, all_generalization
         df[index] = to_generalize
         
     return df_gen
+"""
 
+'''
+    Questa funzione prende in input il df, le generalizzazioni richieste e un dizionario contenente tutte le generalizzazioni per ogni QI.
+    Cicla su tutte le coppie chiavi-valore presenti nel dizionario delle generalizzazioni richieste e in base al livello di generalizzazione
+    richiesto prende dalla tabella contenente tutte le gen. la prima colonna(valore originale) e la colonna del livello richiesto.
+    A questo punto sostituisce con il valore anonimizzato
+'''
+def generalize_data(df:DataFrame, generalization_levels:dict, all_generalizations:DataFrame):
+    df_gen = copy.copy(df)
+    for index, level in generalization_levels.items():
+        to_generalize = df_gen.loc[:, index]
+        lev_string = str("{}{}").format(index, level)
+        ind_string = str("{}{}").format(index, 0)
+        lookup = pd.Series(all_generalizations[lev_string].values, index=all_generalizations[ind_string]).to_dict()
+        for row in to_generalize:
+            for original, anonymized in lookup.items():
+                if str(original) == str(row):
+                    to_generalize.replace(to_replace = str(row), inplace=True, value = str(anonymized))
+        df_gen[index] = to_generalize
+        
+    return df_gen
 
+""" 
 def core_incognito(graph:Graph):
 
     queue = []
@@ -246,10 +288,8 @@ def core_incognito(graph:Graph):
         graph2 = graph_generation(graph)
 
 
-core_incognito(graph)
+core_incognito(graph) """
 
 all_generalizations = create_generalization_hierarchies(gen)
 df_gen = generalize_data(df, gen, all_generalizations)
-'''graph.print_graph()'''
-'''graph_generation(counter, graph)'''
 print("Execution time: "+str(time.time() - start_time)+"s")
