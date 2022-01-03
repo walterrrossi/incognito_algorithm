@@ -1,3 +1,6 @@
+from pandas.core.frame import DataFrame
+
+
 class Node:
 
     _ID = 0
@@ -5,6 +8,7 @@ class Node:
     marked = False
     q_identifier_list = []
     generalization_level = []
+    frequency_set = DataFrame
     parent1 = 0
     parent2 = 0
 

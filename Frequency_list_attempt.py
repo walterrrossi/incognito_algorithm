@@ -167,6 +167,8 @@ print("-----------------------------------------------------")
 #new_table = parent_freq_list.join(gen_hierarchies.set_index(gen_attributes_col), on=gen_attributes)
 new_table = parent_freq_list.join(gen_hierarchies, lsuffix='', rsuffix='0')
 
+# 0 magari va sostituito
+
 print(new_table)
 
 print("-----------------------------------------------------")
