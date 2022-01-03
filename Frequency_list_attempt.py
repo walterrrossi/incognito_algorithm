@@ -7,8 +7,13 @@ from Graph import Graph
 from Node import Node
 
 start_time = time.time()
-df = pd.read_csv("datasets/db_10000.csv", dtype=str)
+df = pd.read_csv("datasets/db_100.csv", dtype=str)
 df = df.drop(["id","disease"],1)
+
+q_identifiers_list = [1, 2, 3]
+generalization_levels = [4, 4, 6]
+q_identifiers_dict = dict(zip(q_identifiers_list, generalization_levels))
+q_identifiers_tag_id_dict = {"age" : 1, "city_birth" : 2 , "zip_code" : 3}
 
 print("---------------------------------------------------")
 print(df)
@@ -26,9 +31,10 @@ print("---------------------------------------------------")
 
     :return frequency_list and number of unique elements
 '''
-def get_frequency_list(df:DataFrame, qi_list:list, qi_frequency:dict = dict()):
+def get_frequency_list(df:DataFrame, qi_list:list):
 
     # qi_frequency: tuple -> (counts, {row_keys})
+    qi_frequency = dict()
 
     for i, row in df.iterrows():
                 
@@ -73,12 +79,30 @@ def get_frequency_list_pandas(df:DataFrame, qi_list:list):      # https://pandas
     # tuple -> (counts, {row_keys})
     qi_frequency = dict()
 
-    qi_frequency = df[qi_list].value_counts()
-    qi_frequency = qi_frequency.to_dict()
+    qi_frequency = df[qi_list].value_counts().rename_axis(qi_list).reset_index(name='counts')
+    #qi_frequency = qi_frequency.to_dict()
+    #qi_frequency = qi_frequency.to_frame()
 
     counter = len(qi_frequency)
     return qi_frequency, counter
 
+'''
+    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
+    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
+    valore la lista di tutte le generalizzazioni di quel livello
+'''
+def create_generalization_hierarchies(generalization_level:dict):
+    all_gen = pd.DataFrame()
+    for tag, level in generalization_level.items():
+        path = str("datasets/{}_generalization.csv").format(tag)
+        df_all_gen = pd.read_csv(path, header=None, dtype=str)
+        for key, qi_id in q_identifiers_tag_id_dict.items():
+            if key == tag:
+                for i in range(0, q_identifiers_dict[qi_id]):
+                    column_name = str("{}{}").format(key,i)
+                    all_gen[column_name] = df_all_gen.iloc[:,i]
+        
+    return all_gen
 
 '''
     MAIN
@@ -88,50 +112,95 @@ def get_frequency_list_pandas(df:DataFrame, qi_list:list):      # https://pandas
 # qi list
 root_node_qi = ["age", "zip_code", "city_birth"]
 
-# getting frequency list
-
+'''
+start_time = time.time()
 [freq_list, counter] = get_frequency_list(df, root_node_qi)
-print("Execution time 1: "+str(time.time() - start_time)+"s")
+print("--- Execution time: "+str(time.time() - start_time)+"s")
+'''
+
 start_time = time.time()
 [freq_list, counter] = get_frequency_list_pandas(df, root_node_qi)
-print("Execution time 2: "+str(time.time() - start_time)+"s")
+print("--- Execution time: "+str(time.time() - start_time)+"s")
 
-#print(freq_list)
+print(freq_list)
 print("\n")
 print("unique tuples: " + str(counter))
 print("-----------------------------------------------------")
 
 '''
-    provo a trovare la frequency list per nodo non radice, utilizzo la vecchia frequency list
+    Ottengo le gerarchie di generalizzazione
 '''
 
-#TODO: Creare il nuovo data frame composto con vecchia frequency list e generalization dimension table
+gen = {"zip_code" : 3, "age" : 2, "city_birth" : 2}
+gen_hierarchies = create_generalization_hierarchies(gen)
 
-'''
-    For example, consider F1, the relational representation of
-    the frequency set of the Patients table from Figure 1 with
-    respect to hBirthdate, Sex, Zipcodei. Recall that in SQL
-    the frequency set is computed by a COUNT(*) query with
-    Birthdate, Sex, Zipcode as the GROUP BY clause. The fre-
-    quency set (F2) of Patients with respect to hBirthdate, Sex,
-    Z1i can be produced by joining F1 with the Zipcode dimen-
-    sion table, and issuing a SUM(count) query with Birthdate,
-    Sex, Z1 as the GROUP BY clause.
-'''
+parent_freq_list = freq_list
 
-# join with pandas
-# new_df = df1.set_index('key').join(df2.set_index('key'))
+print(gen_hierarchies)
 
-'''
-new_df = df
-node_qi = ["age", "zip_code", "city_birth"]
-old_freq_list = freq_list
-
-[freq_list, counter] = get_frequency_list(new_df, node_qi, old_freq_list)
-
-print(freq_list)
-print("unique tuples: " + str(counter))
 print("-----------------------------------------------------")
 
 '''
+    Produzione della lista delle chiavi
+'''
 
+#gen_attributes = list()
+#gen_attributes_col = list()
+final_attributes = list()
+
+for tag in gen.keys():
+    #gen_attributes.append(tag)
+    #gen_attributes_col.append(str("{}{}").format(tag,"0"))
+    final_attributes.append(str("{}{}").format(tag,gen[tag]))
+
+#print(gen_attributes)
+#print(gen_attributes_col)
+print(final_attributes)
+
+print("-----------------------------------------------------")
+
+'''
+    Join dei dataframe
+'''
+
+#new_table = parent_freq_list.set_index(gen_attributes).join(gen_hierarchies.set_index(gen_attributes_col))
+#new_table = parent_freq_list.join(gen_hierarchies.set_index(gen_attributes_col), on=gen_attributes)
+new_table = parent_freq_list.join(gen_hierarchies, lsuffix='', rsuffix='0')
+
+print(new_table)
+
+print("-----------------------------------------------------")
+
+'''
+    Ottengo Frequency list successiva
+'''
+
+# TODO: Assicurarsi che copia per riferimento non dia problemi oppure copiare il df per non lavorare sull originale
+
+old_frequency_list_joined = new_table
+node_qi = final_attributes
+
+start_time = time.time()
+[freq_list, counter] = get_frequency_list_pandas(old_frequency_list_joined, node_qi)
+print("--- Execution time: "+str(time.time() - start_time)+"s")
+
+print(freq_list)
+print("\n")
+print("unique tuples: " + str(counter))
+print("-----------------------------------------------------")
+
+
+'''
+    OSSERVAZIONE: 
+
+    Con 100 righe: 2a frequency list ci ~uguale alla 1a
+
+    1 - 0.00598454475402832s
+    2 - 0.0059871673583984375s
+
+    Con 10000 righe: 2a frequency list più veloce della 1a
+
+    1 - 0.03390932083129883s
+    2 - 0.01795220375061035s
+
+'''
