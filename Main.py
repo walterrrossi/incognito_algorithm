@@ -56,6 +56,29 @@ graph.edges=[[0,1],
             [8,10],
             [9,10]]
 
+#TODO Da verificare!!! Credo vada ma voglio altri occhi!!!
+c=[]
+c.append(h)
+c.append(b)
+c.append(a)
+for n in c:
+    print("id"+str(n.id))
+
+#def sort_nodes(a):
+ #   print(sum(a.generalization_level))
+  #  return sum(a.generalization_level)
+
+
+#c = sorted(c, key=sort_nodes)
+
+#Stessa cosa ma con la lamba function
+c = sorted(c, key= lambda node: sum(node.generalization_level))
+
+for n in c:
+    print("id"+str(n.id))
+
+
+
 
 '''
     Questa funzione serve per inizializzare il primo grafo. Verranno creani per ogni quasi identifiers n nodi
