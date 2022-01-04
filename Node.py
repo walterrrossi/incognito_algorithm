@@ -13,23 +13,24 @@ class Node:
     parent2 = 0
 
     def __init__(self, marked, q_identifiers, generalization_level):
-        self.id = self._ID; self.__class__._ID += 1
+        self.id = self._ID
+        self.__class__._ID += 1
         self.marked = marked
         self.q_identifiers_list = q_identifiers
         self.generalization_level = generalization_level
-     
+
     def set_is_root(self, is_root):
         self.is_root = is_root
-    
+
     def set_marked(self, marked):
         self.marked = marked
-    
+
     def set_q_identifiers_list(self, q_identifiers_list):
         self.q_identifiers_list = q_identifiers_list
-    
+
     def set_gen_level(self, generalization_level):
         self.generalization_level = generalization_level
 
     def print_info(self):
-        print("id:"+ str(self.id)+" "+ str(self.q_identifiers_list) + " "+ str(self.generalization_level))
-    
+        print("id:" + str(self.id)+" " + str(self.q_identifiers_list) +
+              " " + str(self.generalization_level))
