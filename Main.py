@@ -94,6 +94,7 @@ def graph_generation(s: list, edges: list):
 
     # Setta i nodi roots
     newGraph.check_roots()
+    return newGraph
 
 # -------------------------------------------------------------------
 
@@ -176,8 +177,7 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
     #qi_frequency = qi_frequency.to_dict()
     #qi_frequency = qi_frequency.to_frame()
 
-    counter = len(qi_frequency)
-    return qi_frequency, counter
+    return qi_frequency
 
 
 # -------------------------------------------------------------------
@@ -209,10 +209,9 @@ def core_incognito(dataset, qi_list):
     queue = []
 
     graph_initial = initialize_graph(q_identifiers_tag_lev_dict)
-
+    graph_list = [graph_initial]
     for i in range(0, len(qi_list)):
         print("ciclo iniziato")
-        graph_list = [graph_initial]
 
         graph = graph_list[-1]
 
@@ -225,11 +224,9 @@ def core_incognito(dataset, qi_list):
 
         queue.extend(roots)
 
-        print(sum(queue[1].generalization_level))
-
         queue = sorted(queue, key=lambda n: sum(n.generalization_level))
 
-        while queue != False:
+        while not queue:
             node = queue.pop()
             if node.marked == False:
                 # Generalizzare il dataset considerando il nodo
@@ -240,7 +237,7 @@ def core_incognito(dataset, qi_list):
                     for id2 in qi_dict_node2.keys():
                         if id == id2:
                             qi_dict_node[tag] = qi_dict_node.pop(id2)
-                print(qi_dict_node)
+                # print(qi_dict_node)
                 dataset_generalized = generalize_data(
                     dataset, qi_dict_node, generalizations_table)
 
@@ -255,12 +252,13 @@ def core_incognito(dataset, qi_list):
                         dataset_generalized, node.q_identifiers_list)
 
                 # ---------------------
-                is_k_anon = False
-                for row in node.frequency_set:
-                    print(row["counts"])
-                    if((row["counts"] >= k_anonimity).any()):
-                        is_k_anon = True
-                        break
+                is_k_anon = True
+                for col, row in node.frequency_set.iteritems():
+                    if col == "counts":
+                        for el in row:
+                            if(el < k_anonimity):
+                                is_k_anon = False
+                                break
                 # ---------------------
                 if(is_k_anon):
                     # ------------------------------------------------
@@ -285,7 +283,8 @@ def core_incognito(dataset, qi_list):
         print("ciclo terminato")
         graph.print_graph()
         # TODO: Graph Generation per passare al grafo successivo (da passare le due liste, nodi e grafi)
-        graph_list.append(graph_generation(s, graph.edges))
+        g = graph_generation(s, graph.edges)
+        graph_list.append(g)
 
         print("finito")
 
