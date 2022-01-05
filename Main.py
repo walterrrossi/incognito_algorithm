@@ -129,33 +129,19 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
 
     return qi_frequency
 
-
-# -------------------------------------------------------------------
-start_time = time.time()
-#dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
-
-dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
-dataset = dataset.drop(["id", "disease"], axis=1)
-
 # -------------------------------------------------------------------
 
-# INPUTS
-k_anonimity = 2
-q_identifiers_list = [1, 2, 3]
-q_identifiers_list_string = ["age", "city_birth", "zip_code"]
-#q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
-generalization_levels = [4, 4, 6]   # anche ottenibile da file
-# generalization_levels = [2, 2, 3]   # anche ottenibile da file
 
-q_identifiers_tag_id_dict = dict(
-    zip(q_identifiers_list_string, q_identifiers_list))
-#q_identifiers_tag_id_dict = dict(zip(q_identifiers_list_string, q_identifiers_list))
+def check_k_anonimity(node: Node):
+    is_k_anon = True
+    for col, row in node.frequency_set.iteritems():
+        if col == "counts":
+            for el in row:
+                if(el < k_anonimity):
+                    is_k_anon = False
+                    break
+    return is_k_anon
 
-q_identifiers_id_lev_dict = dict(
-    zip(q_identifiers_list, generalization_levels))
-generalizations_table = create_generalization_hierarchies(
-    q_identifiers_list_string, q_identifiers_tag_id_dict, q_identifiers_id_lev_dict)
-print(generalizations_table)
 # -------------------------------------------------------------------
 
 
@@ -204,16 +190,8 @@ def core_incognito(dataset, qi_list):
                     #
                     node.frequency_set = get_frequency_list_pandas(
                         dataset_generalized, node.q_identifiers_list)
-                # ---------------------
-                is_k_anon = True
-                for col, row in node.frequency_set.iteritems():
-                    if col == "counts":
-                        for el in row:
-                            if(el < k_anonimity):
-                                is_k_anon = False
-                                break
-                # is_k_anon = funzione()
-                # ---------------------
+
+                is_k_anon = check_k_anonimity(node)
                 if(is_k_anon):
                     # ------------------------------------------------
                     # Marca il nodi e le suoi dirette generalizzazioni
@@ -230,6 +208,7 @@ def core_incognito(dataset, qi_list):
                         if edge[0] == node.id:
                             queue.append(graph.take_node(edge[1]))
                     # ------------------------------------------------
+                    # Sort della lista in ordine di altezza
                     queue = sorted(queue, key=lambda node: sum(
                         node.generalization_level))
 
@@ -267,6 +246,34 @@ def core_incognito(dataset, qi_list):
 
 # -------------------------------------------------------------------
 
+
+# DATASET
+start_time = time.time()
+#dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
+
+dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
+dataset = dataset.drop(["id", "disease"], axis=1)
+
+# -------------------------------------------------------------------
+
+
+# INPUTS
+k_anonimity = 2
+q_identifiers_list = [1, 2, 3]
+q_identifiers_list_string = ["age", "city_birth", "zip_code"]
+#q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
+generalization_levels = [4, 4, 6]   # anche ottenibile da file
+# generalization_levels = [2, 2, 3]   # anche ottenibile da file
+
+q_identifiers_tag_id_dict = dict(
+    zip(q_identifiers_list_string, q_identifiers_list))
+#q_identifiers_tag_id_dict = dict(zip(q_identifiers_list_string, q_identifiers_list))
+
+q_identifiers_id_lev_dict = dict(
+    zip(q_identifiers_list, generalization_levels))
+generalizations_table = create_generalization_hierarchies(
+    q_identifiers_list_string, q_identifiers_tag_id_dict, q_identifiers_id_lev_dict)
+print(generalizations_table)
 
 core_incognito(dataset, q_identifiers_list)
 

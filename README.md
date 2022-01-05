@@ -2,8 +2,6 @@
 
 Implementation of the Incognito Algorithm in Python
 
-### Requirements - required libraries
+### Requirements
 
-- pandas for managing data
-
-`pip install pandas`
+Install all required packages using the `requirements.txt` file
