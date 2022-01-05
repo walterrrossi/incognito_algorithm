@@ -110,15 +110,15 @@ def create_generalization_hierarchies(generalization_level: list, q_identifiers_
     all_gen = pd.DataFrame()
     for tag in generalization_level:
         #path = str("datasets/{}_generalization.csv").format(str(tag))
-        path = str("datasets/{}_paper_generalization.csv").format(str(tag))
+        path = str("datasets/{}_generalization.csv").format(str(tag))
         df_one_gen = pd.read_csv(path, header=None, dtype=str)
         for key, qi_id in q_identifiers_tag_id_dict.items():
             if key == tag:
                 for i in range(0, q_identifiers_id_lev_dict[qi_id]):
                     tmp_df = pd.DataFrame()
                     column_name = str("{}{}").format(key, i)
-                    tmp_df[column_name] = df_one_gen.iloc[:, i+1]
-                    pd.concat([all_gen, tmp_df], axis=1)
+                    tmp_df[column_name] = df_one_gen.iloc[:, i]
+                    all_gen = pd.concat([all_gen, tmp_df], axis=1)
 
     return all_gen
 
@@ -188,7 +188,7 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
 start_time = time.time()
 #dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
 
-dataset = pd.read_csv("datasets/db_paper.csv", dtype=str)
+dataset = pd.read_csv("datasets/db_10000.csv", dtype=str)
 dataset = dataset.drop(["id", "disease"], axis=1)
 
 # -------------------------------------------------------------------
@@ -196,14 +196,14 @@ dataset = dataset.drop(["id", "disease"], axis=1)
 # INPUTS
 k_anonimity = 2
 q_identifiers_list = [1, 2, 3]
-#q_identifiers_list_string = ["age", "city_birth", "zip_code"]
-q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
-# generalization_levels = [4, 4, 6]   # anche ottenibile da file
-generalization_levels = [2, 2, 3]   # anche ottenibile da file
+q_identifiers_list_string = ["age", "city_birth", "zip_code"]
+#q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
+generalization_levels = [4, 4, 6]   # anche ottenibile da file
+# generalization_levels = [2, 2, 3]   # anche ottenibile da file
 
-#q_identifiers_tag_id_dict = {"age": 1, "city_birth": 2, "zip_code": 3}
 q_identifiers_tag_id_dict = dict(
     zip(q_identifiers_list_string, q_identifiers_list))
+#q_identifiers_tag_id_dict = dict(zip(q_identifiers_list_string, q_identifiers_list))
 
 q_identifiers_id_lev_dict = dict(
     zip(q_identifiers_list, generalization_levels))
@@ -238,7 +238,6 @@ def core_incognito(dataset, qi_list):
 
         while len(queue) > 0:
             node = queue.pop(0)
-            node.print_info()
             if node.marked == False:
                 # Generalizzare il dataset considerando il nodo
                 qi_dict_node2 = dict(
@@ -248,21 +247,17 @@ def core_incognito(dataset, qi_list):
                     for id2 in qi_dict_node2.keys():
                         if id == id2:
                             qi_dict_node[tag] = qi_dict_node.pop(id2)
-                # print(qi_dict_node)
                 dataset_generalized = generalize_data(
                     dataset, qi_dict_node, generalizations_table)
-                print(dataset_generalized)
                 if node.is_root == True:
                     node.frequency_set = get_frequency_list_pandas(
                         dataset_generalized, node.q_identifiers_list)
-                    print(node.frequency_set)
                 else:
                     #generalized_frequency_set = frequency_set_parent.join(generalizations_table, lsuffix='', rsuffix='0')
                     #node.frequency_set = get_frequency_list_pandas(generalized_frequency_set, node.q_identifiers_list)
                     #
                     node.frequency_set = get_frequency_list_pandas(
                         dataset_generalized, node.q_identifiers_list)
-                    print(node.frequency_set)
                 # ---------------------
                 is_k_anon = True
                 for col, row in node.frequency_set.iteritems():
@@ -281,16 +276,7 @@ def core_incognito(dataset, qi_list):
                             graph.take_node(edge[1]).set_marked(True)
                     # ------------------------------------------------
                 else:
-                    '''print("S1")
-                    for m in s:
-                        m.print_info()'''
-
                     s = list(filter(lambda n: n.id != node.id, s))
-
-                    '''print("S2")
-                    for m in s:
-                        m.print_info()'''
-
                     # ------------------------------------------------
                     # Inserire dirette generazioni nella coda
                     for edge in graph.edges:
@@ -314,9 +300,28 @@ def core_incognito(dataset, qi_list):
         graph_list.append(g)
 
     print("finito")
+    final_graph = graph_list[-2]
+    final_graph.nodes = sorted(
+        final_graph.nodes, key=lambda n: sum(n.generalization_level))
+    for node in final_graph.nodes:
+        if node.marked == True:
+            node.print_info()
+            qi_dict_node2 = dict(
+                zip(node.q_identifiers_list, node.generalization_level))
+            qi_dict_node = copy.copy(qi_dict_node2)
+            for tag, id in q_identifiers_tag_id_dict.items():
+                for id2 in qi_dict_node2.keys():
+                    if id == id2:
+                        qi_dict_node[tag] = qi_dict_node.pop(id2)
+            dataset_generalized = generalize_data(
+                dataset, qi_dict_node, generalizations_table)
+            print(dataset_generalized)
+            break
     return 0
 
 # -------------------------------------------------------------------
 
 
 core_incognito(dataset, q_identifiers_list)
+
+print("Execution time: " + str(time.time() - start_time) + "s")
