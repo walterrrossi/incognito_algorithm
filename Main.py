@@ -2,9 +2,10 @@ from numpy import pi
 import pandas as pd
 import copy
 import time
-import collections
 
 from pandas.core.frame import DataFrame
+from generalization import create_generalization_hierarchies
+from generalization import generalize_data
 from Graph import Graph
 from Node import Node
 
@@ -100,61 +101,6 @@ def graph_generation(s: list, edges: list):
 
 
 '''
-    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
-    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
-    valore la lista di tutte le generalizzazioni di quel livello
-'''
-
-
-def create_generalization_hierarchies(generalization_level: list, q_identifiers_tag_id_dict: dict, q_identifiers_id_lev_dict: dict):
-    all_gen = pd.DataFrame()
-    for tag in generalization_level:
-        #path = str("datasets/{}_generalization.csv").format(str(tag))
-        path = str("datasets/{}_generalization.csv").format(str(tag))
-        df_one_gen = pd.read_csv(path, header=None, dtype=str)
-        for key, qi_id in q_identifiers_tag_id_dict.items():
-            if key == tag:
-                for i in range(0, q_identifiers_id_lev_dict[qi_id]):
-                    tmp_df = pd.DataFrame()
-                    column_name = str("{}{}").format(key, i)
-                    tmp_df[column_name] = df_one_gen.iloc[:, i]
-                    all_gen = pd.concat([all_gen, tmp_df], axis=1)
-
-    return all_gen
-
-# -------------------------------------------------------------------
-
-
-'''
-    Questa funzione prende in input il df, le generalizzazioni richieste e un dizionario contenente tutte le generalizzazioni per ogni QI.
-    Cicla su tutte le coppie chiavi-valore presenti nel dizionario delle generalizzazioni richieste e in base al livello di generalizzazione
-    richiesto prende dalla tabella contenente tutte le gen. la prima colonna(valore originale) e la colonna del livello richiesto.
-    A questo punto sostituisce con il valore anonimizzato
-'''
-
-
-def generalize_data(dataset: DataFrame, generalization_levels: dict, all_generalizations: DataFrame):
-    df_original = copy.copy(dataset)
-    df_generalized = pd.DataFrame()
-    for index, level in generalization_levels.items():
-        to_generalize = df_original.loc[:, index]
-        lev_string = str("{}{}").format(index, level)
-        ind_string = str("{}{}").format(index, 0)
-        lookup = pd.Series(
-            all_generalizations[lev_string].values, index=all_generalizations[ind_string]).to_dict()
-        for row in to_generalize:
-            for original, anonymized in lookup.items():
-                if str(original) == str(row):
-                    to_generalize.replace(to_replace=str(
-                        original), inplace=True, value=str(anonymized))
-        df_generalized[index] = to_generalize
-
-    return df_generalized
-
-# -------------------------------------------------------------------
-
-
-'''
     FREQUENCY LIST CON PANDAS
     Questa funzione permette di ottenere la frequency list del dataset rispetto agli attributi qi indicati.
     
@@ -188,7 +134,7 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
 start_time = time.time()
 #dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
 
-dataset = pd.read_csv("datasets/db_10000.csv", dtype=str)
+dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
 dataset = dataset.drop(["id", "disease"], axis=1)
 
 # -------------------------------------------------------------------
