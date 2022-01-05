@@ -266,6 +266,7 @@ def core_incognito(dataset, qi_list):
                             if(el < k_anonimity):
                                 is_k_anon = False
                                 break
+                # is_k_anon = funzione()
                 # ---------------------
                 if(is_k_anon):
                     # ------------------------------------------------
@@ -283,7 +284,6 @@ def core_incognito(dataset, qi_list):
                         if edge[0] == node.id:
                             queue.append(graph.take_node(edge[1]))
                     # ------------------------------------------------
-                    # TODO DA CONTROLLARE SE FUNZIONA SE É ULTIMO NODO
                     queue = sorted(queue, key=lambda node: sum(
                         node.generalization_level))
 
