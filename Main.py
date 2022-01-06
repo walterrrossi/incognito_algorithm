@@ -11,7 +11,13 @@ from Node import Node
 
 # -------------------------------------------------------------------
 
+'''
+    Questa funzione inizializza il primo grafo dell'algoritmo. Questo grafo dovrá contenere come nodi i quasi identifier singoli con i loro
+    livelli di generalizzazione.
 
+    :param q_identifiers_id_lev_dict è un dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
+    :return graph un'istanza di tipo grapo che contiene gli archi e nodi necessari per il primo ciclo dell'incognito
+'''
 def initialize_graph(q_identifiers_id_lev_dict):
 
     graph = Graph()
@@ -34,7 +40,16 @@ def initialize_graph(q_identifiers_id_lev_dict):
 
 # -------------------------------------------------------------------
 
+'''
+    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
+    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
+    valore la lista di tutte le generalizzazioni di quel livello
 
+    :param s è una lista contenente i nodi rimasti del grafo precendente che contribuiranno alla formazione dei nodi 
+            del grafo sucessivo
+    :param edges è la lista di archi del grafo precendente che contribuirá alla creazione degli archi del grafo sucessivo
+    :return newGraph è un'istanza di tipo grafo che rappresenta il grafo generato e che sará utilizzato per il ciclo sucessivo
+'''
 def graph_generation(s: list, edges: list):
 
     newGraph = Graph()
@@ -81,7 +96,6 @@ def graph_generation(s: list, edges: list):
 
     for d1 in range(len(unique_result_edges)):
         for d2 in range(len(unique_result_edges)):
-            #print(str(d1) + str(d2))
             if unique_result_edges[d1][1] == unique_result_edges[d2][0]:
                 edges_to_remove.append(
                     [unique_result_edges[d1][0], unique_result_edges[d2][1]])
@@ -131,6 +145,12 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
 
 # -------------------------------------------------------------------
 
+'''
+    Questa funzione permette di verificare la k-anonimity su una frequency list contenuta da un nodo
+    
+    :param node istanza di tipo node
+    :return is_k_anon nu valore booleano True se k-anonimus o viceversa
+'''
 
 def check_k_anonimity(node: Node):
     is_k_anon = True
