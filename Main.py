@@ -1,10 +1,11 @@
-from numpy import pi
+from numpy import frexp, pi
 import pandas as pd
 import copy
 import time
 import collections
 
 from pandas.core.frame import DataFrame
+from Frequency_list_attempt import get_frequency_list_pandas
 from Graph import Graph
 from Node import Node
 
@@ -147,7 +148,9 @@ def generalize_data(dataset: DataFrame, generalization_levels: dict, all_general
                 if str(original) == str(row):
                     to_generalize.replace(to_replace=str(
                         original), inplace=True, value=str(anonymized))
-        df_generalized[index] = to_generalize
+        #THIS COMMENTED VERSION IS TO HAVE COLUMNS ORIGINAL NAMES
+        #df_generalized[index] = to_generalize          
+        df_generalized[lev_string] = to_generalize
 
     return df_generalized
 
@@ -163,9 +166,8 @@ def generalize_data(dataset: DataFrame, generalization_levels: dict, all_general
 
     :return frequency_list and number of unique elements
 '''
-
-
-# https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.value_counts.html
+'''
+                    #OBSOLETE
 def get_frequency_list_pandas(df: DataFrame, qi_list: list):
 
     # tuple -> (counts, {row_keys})
@@ -182,7 +184,23 @@ def get_frequency_list_pandas(df: DataFrame, qi_list: list):
     #qi_frequency = qi_frequency.to_frame()
 
     return qi_frequency
+'''
 
+# METODO CON CONTEGGIO (richiede un dataset già generalizzato)
+def get_frequency_set_1 (df: DataFrame):
+    
+    qi_frequency_set = df.value_counts().reset_index(name='counts')
+
+    return qi_frequency_set
+
+# METODO CON AGGREGATE (richiede una tabella con gli attributi e con colonna counts già presente)
+def get_frequency_set_2 (df: DataFrame, qi_attr: list):
+    
+    # qi_attr = ["age0", "zip_code1"]  (example)
+    aggregation_functions = {'counts': 'sum'}
+    qi_frequency_set = df.groupby(qi_attr).aggregate(aggregation_functions).reset_index()
+
+    return qi_frequency_set
 
 # -------------------------------------------------------------------
 start_time = time.time()
@@ -247,17 +265,95 @@ def core_incognito(dataset, qi_list):
                     for id2 in qi_dict_node2.keys():
                         if id == id2:
                             qi_dict_node[tag] = qi_dict_node.pop(id2)
+                # print(qi_dict_node2)
+                # print(qi_dict_node)
+                # print(node.q_identifiers_list)
+                
+                # trovo i nomi dei qi con level come suffisso (es: zip_code, 0 -> zip_code0)
+                qi_with_levels_node = []
+                for key in qi_dict_node.keys():
+                    qi_with_levels_node.append(str("{}{}").format(key,str(qi_dict_node[key])))   
+                # print(qi_with_levels_node)
+
+                # TODO: Possiamo muovere questo di sotto dentro all'if se usiamo il metodo che parte da parent F.L. (non serve per l'else se usiamo nuovo metodo)
                 dataset_generalized = generalize_data(
                     dataset, qi_dict_node, generalizations_table)
+                
                 if node.is_root == True:
-                    node.frequency_set = get_frequency_list_pandas(
-                        dataset_generalized, node.q_identifiers_list)
+                    
+                    print("----------------------------------------------------------------------------------------")
+                    # 1 - vecchio metodo (ricalcolo freq set)
+                    new_frequency_set_1 = get_frequency_set_1(
+                        dataset_generalized)
+                    # 2 -nuovo metodo (da old_freq_set con join)
+                    starting_frequency_set = copy.copy(dataset_generalized)
+                    starting_frequency_set['counts'] = 1        # aggiungo counts uguale a 1 in ogni riga per poi poterlo aggiornare quando conto
+                    new_frequency_set_2 = get_frequency_set_2(
+                        starting_frequency_set, qi_with_levels_node)
+                    
+                    print("--- FREQ SET ROOT -VECCHIO- METODO ---")
+                    print(new_frequency_set_1)
+                    print("--- FREQ SET ROOT -NUOVO- METODO ---")
+                    print(new_frequency_set_2)
+
+                    # IMPOSTARE QUI QUALE RISULTATO-METODO DI FREQUENCY LIST ROOT PORTARSI DIETRO
+                    node.frequency_set = new_frequency_set_2
+                    print("----------------------------------------------------------------------------------------")
                 else:
-                    #generalized_frequency_set = frequency_set_parent.join(generalizations_table, lsuffix='', rsuffix='0')
-                    #node.frequency_set = get_frequency_list_pandas(generalized_frequency_set, node.q_identifiers_list)
-                    #
-                    node.frequency_set = get_frequency_list_pandas(
-                        dataset_generalized, node.q_identifiers_list)
+
+                    print("----------------------------------------------------------------------------------------")
+                    frequency_set_parent = graph.get_parent(node).frequency_set
+
+                    print("--- NEW FREQ SET ---")
+                    print(" => frequency set con nuovo metodo")
+                    
+                    attr = qi_with_levels_node                      # attributi del nodo corrente
+                    freq_set_attr = copy.copy(qi_with_levels_node)  # attributi del nodo corrente con counts
+                    freq_set_attr.append("counts")                  
+
+                    # trovo l'attributo che cambia con la generalizzazione
+                    old_qi = ""
+                    new_qi = ""
+                    for item in list(frequency_set_parent.columns):
+                        if item not in freq_set_attr:
+                            old_qi = item
+                            break
+                    for item in freq_set_attr:
+                        if item not in list(frequency_set_parent.columns):
+                            new_qi = item
+                            break
+
+                    # filtro la tabella con le generalizzazioni lasciando solo gli attributi che cambiano e togliendo le righe null 
+                    # (va fatto senno nel join trova un duplicato di attributi che non sto cambiando e gli da nome_x (con suffisso))
+                    small_generalization_table = generalizations_table.filter(items=[old_qi,new_qi]).dropna()   
+                    # print(small_generalization_table)
+                    
+                    # stampo cosa succede in questa iterazione
+                    print("\n")
+                    print("-- FROM: ")
+                    print(list(frequency_set_parent.columns))
+                    print("-- TO: ") 
+                    print(freq_set_attr)
+                    print("-- CAMBIANDO: ")
+                    print(old_qi + " -> " + new_qi) 
+                    print("\n")
+  
+                    # 1 - vecchio metodo (ricalcolo freq set)
+                    new_frequency_set_1 = get_frequency_set_1(dataset_generalized)
+                    # 2 -nuovo metodo (da old_freq_set con join)
+                    joined_table = pd.merge(frequency_set_parent, small_generalization_table, on=old_qi).filter(items=freq_set_attr)
+                    print(joined_table)
+                    new_frequency_set_2 = get_frequency_set_2(joined_table, attr)
+                    
+                    print("--- FREQ SET -VECCHIO- METODO ---")
+                    print(new_frequency_set_1)
+                    print("--- FREQ SET -NUOVO- METODO ---")
+                    print(new_frequency_set_2)
+
+                    # IMPOSTARE QUI QUALE RISULTATO-METODO DI FREQUENCY LIST PORTARSI DIETRO
+                    node.frequency_set = new_frequency_set_2
+
+                    print("----------------------------------------------------------------------------------------")
                 # ---------------------
                 is_k_anon = True
                 for col, row in node.frequency_set.iteritems():

@@ -117,7 +117,7 @@ start_time = time.time()
 [freq_list, counter] = get_frequency_list(df, root_node_qi)
 print("--- Execution time: "+str(time.time() - start_time)+"s")
 '''
-
+'''
 start_time = time.time()
 [freq_list, counter] = get_frequency_list_pandas(df, root_node_qi)
 print("--- Execution time: "+str(time.time() - start_time)+"s")
@@ -126,12 +126,12 @@ print(freq_list)
 print("\n")
 print("unique tuples: " + str(counter))
 print("-----------------------------------------------------")
-
+'''
 '''
     Ottengo le gerarchie di generalizzazione
 '''
-
-gen = {"zip_code" : 3, "age" : 2, "city_birth" : 2}
+'''
+gen = {"zip_code" : 1, "age" : 2, "city_birth" : 2}
 gen_hierarchies = create_generalization_hierarchies(gen)
 
 parent_freq_list = freq_list
@@ -139,44 +139,45 @@ parent_freq_list = freq_list
 print(gen_hierarchies)
 
 print("-----------------------------------------------------")
-
+'''
 '''
     Produzione della lista delle chiavi
 '''
-
-#gen_attributes = list()
+'''
+gen_attributes = list()
 #gen_attributes_col = list()
 final_attributes = list()
 
 for tag in gen.keys():
-    #gen_attributes.append(tag)
+    gen_attributes.append(tag)
     #gen_attributes_col.append(str("{}{}").format(tag,"0"))
     final_attributes.append(str("{}{}").format(tag,gen[tag]))
 
-#print(gen_attributes)
+print(gen_attributes)
 #print(gen_attributes_col)
 print(final_attributes)
 
 print("-----------------------------------------------------")
-
+'''
 '''
     Join dei dataframe
 '''
-
+'''
 #new_table = parent_freq_list.set_index(gen_attributes).join(gen_hierarchies.set_index(gen_attributes_col))
 #new_table = parent_freq_list.join(gen_hierarchies.set_index(gen_attributes_col), on=gen_attributes)
-new_table = parent_freq_list.join(gen_hierarchies, lsuffix='', rsuffix='0')
+new_table = parent_freq_list.join(gen_hierarchies.filter(items=final_attributes), lsuffix='', rsuffix='0').filter(items=final_attributes)
 
 # 0 magari va sostituito
 
+print("join: ")
 print(new_table)
 
 print("-----------------------------------------------------")
-
+'''
 '''
     Ottengo Frequency list successiva
 '''
-
+'''
 # TODO: Assicurarsi che copia per riferimento non dia problemi oppure copiare il df per non lavorare sull originale
 
 old_frequency_list_joined = new_table
@@ -190,7 +191,7 @@ print(freq_list)
 print("\n")
 print("unique tuples: " + str(counter))
 print("-----------------------------------------------------")
-
+'''
 
 '''
     OSSERVAZIONE: 
@@ -206,3 +207,4 @@ print("-----------------------------------------------------")
     2 - 0.01795220375061035s
 
 '''
+
