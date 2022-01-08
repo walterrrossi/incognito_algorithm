@@ -3,24 +3,27 @@ import copy
 from pandas.core.frame import DataFrame
 
 # -------------------------------------------------------------------
-'''
+
+
+def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_tag_id_dict: dict, q_identifiers_id_lev_dict: dict):
+    """
     Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
     con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
     valore la lista di tutte le generalizzazioni di quel livello
 
-    :param generalization_tag è una lista contenente il i tag dei vari QI da generalizzare
-    :param q_identifiers_tag_id_dict è un dizionario contenente coppie chiavi-valore del tipo (tag del QI):(identificativo intero usato nei nodi )
-    :param q_identifiers_id_lev_dict è un dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
+    Args:
+        generalizations_tag (list): lista contenente il i tag dei vari QI da generalizzare
+        q_identifiers_tag_id_dict (dict): dizionario contenente coppie chiavi-valore del tipo (tag del QI):(identificativo intero usato nei nodi)
+        q_identifiers_id_lev_dict (dict): dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
 
-    :return all_gen è un DataFrame contenente tutte le generalizzazioni, una per ogni colonna che ha come indice il tag del QI e il relativo livello di generalizzazione
-'''
-
-
-def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_tag_id_dict: dict, q_identifiers_id_lev_dict: dict):
+    Returns:
+        [DataFrame]: DataFrame contenente tutte le generalizzazioni, una per ogni colonna che ha come indice il tag del QI e il relativo livello di generalizzazione
+    """
     all_gen = pd.DataFrame()
     for tag in generalizations_tag:
         # path = str("datasets/{}_generalization.csv").format(str(tag))
-        path = str("datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(str(tag))
+        path = str(
+            "datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(str(tag))
         df_one_gen = pd.read_csv(path, header=None, sep=(";"), dtype=str)
         for key, qi_id in q_identifiers_tag_id_dict.items():
             if key == tag:
@@ -35,21 +38,22 @@ def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_t
 # -------------------------------------------------------------------
 
 
-'''
+def generalize_data(dataset: DataFrame, generalization_levels: dict, all_generalizations: DataFrame):
+    """
     Questa funzione prende in input il df, le generalizzazioni richieste e un dizionario contenente tutte le generalizzazioni per ogni QI.
     Cicla su tutte le coppie chiavi-valore presenti nel dizionario delle generalizzazioni richieste e in base al livello di generalizzazione
     richiesto prende dalla tabella contenente tutte le gen. la prima colonna(valore originale) e la colonna del livello richiesto.
     A questo punto sostituisce con il valore anonimizzato
 
-    :param dataset è il DataFrame originale contenente tutte le tuple da generalizzare
-    :param generalization_levels è un dizionario contenente coppie di chiavi-valore del tipo (id intero del QI):(livello di generalizzazione), che identificano i livelli al quale
-    è necessario generalizzare i vari QI
-    :param all_generalizations è il DataFrame che ritorna la funziona create_generalization_hierarchies (vedi sopra)
+    Args:
+        dataset (DataFrame): DataFrame originale contenente tutte le tuple da generalizzare
+        generalization_levels (dict): un dizionario contenente coppie di chiavi-valore del tipo (id intero del QI):(livello di generalizzazione),
+        che identificano i livelli al quale è necessario generalizzare i vari QI
+        all_generalizations (DataFrame): DataFrame che ritorna la funziona create_generalization_hierarchies (vedi sopra)
 
-    :return df_generalized è un DataFrame contente solo le colonne di QI generalizzati al livello richiesto
-'''
-
-def generalize_data(dataset: DataFrame, generalization_levels: dict, all_generalizations: DataFrame):
+    Returns:
+        [DataFrame]: DataFrame contente solo le colonne di QI generalizzati al livello richiesto
+    """
     df_original = copy.copy(dataset)
     df_generalized = pd.DataFrame()
     for index, level in generalization_levels.items():

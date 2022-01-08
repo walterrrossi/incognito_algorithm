@@ -10,16 +10,18 @@ from Node import Node
 
 # -------------------------------------------------------------------
 
-'''
+
+def initialize_graph(q_identifiers_id_lev_dict):
+    """
     Questa funzione inizializza il primo grafo dell'algoritmo. Questo grafo dovrá contenere come nodi i quasi identifier singoli con i loro
     livelli di generalizzazione.
 
-    :param q_identifiers_id_lev_dict è un dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
-    :return graph un'istanza di tipo grapo che contiene gli archi e nodi necessari per il primo ciclo dell'incognito
-'''
+    Args:
+        q_identifiers_id_lev_dict (dict): un dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
 
-
-def initialize_graph(q_identifiers_id_lev_dict):
+    Returns:
+        [Graph]: un'istanza di tipo grapo che contiene gli archi e nodi necessari per il primo ciclo dell'incognito
+    """
 
     graph = Graph()
     # Per ogni quasi identifier
@@ -42,19 +44,19 @@ def initialize_graph(q_identifiers_id_lev_dict):
 # -------------------------------------------------------------------
 
 
-'''
+def graph_generation(s: list, edges: list):
+    """
     Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
     con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
     valore la lista di tutte le generalizzazioni di quel livello
 
-    :param s è una lista contenente i nodi rimasti del grafo precendente che contribuiranno alla formazione dei nodi 
-            del grafo sucessivo
-    :param edges è la lista di archi del grafo precendente che contribuirá alla creazione degli archi del grafo sucessivo
-    :return newGraph è un'istanza di tipo grafo che rappresenta il grafo generato e che sará utilizzato per il ciclo sucessivo
-'''
+    Args:
+        s (list): lista contenente i nodi rimasti del grafo precendente che contribuiranno alla formazione dei nodi del grafo sucessivo
+        edges (list): lista di archi del grafo precendente che contribuirá alla creazione degli archi del grafo sucessivo
 
-
-def graph_generation(s: list, edges: list):
+    Returns:
+        [Graph]: un'istanza di tipo grafo che rappresenta il grafo generato e che sará utilizzato per il ciclo sucessivo
+    """
 
     newGraph = Graph()
 
@@ -121,6 +123,15 @@ def graph_generation(s: list, edges: list):
 
 
 def get_frequency_set_root(df: DataFrame):
+    """
+    Questa funzione calcola il frequency set di un nodo radice, attraverso una funzione di pandas per contare i valori
+
+    Args:
+        df (DataFrame): dataset generalizzato di cui calcolare il frequency set
+
+    Returns:
+        [DataFrame]: frequency set del nodo
+    """
 
     qi_frequency_set = df.value_counts().reset_index(name='counts')
 
@@ -130,6 +141,16 @@ def get_frequency_set_root(df: DataFrame):
 
 
 def get_frequency_set(df: DataFrame, qi_attr: list):
+    """
+    Questa funzione calcola il frequency set di un nodo radice, attraverso una funzione di pandas
+
+    Args:
+        df (DataFrame): dataset generalizzato di cui calcolare il frequency set
+        qi_attr (list): lista dei qi su cui calcolare il frequency set
+
+    Returns:
+        [DataFrame]: frequency set del nodo
+    """
 
     # qi_attr = ["age0", "zip_code1"]  (example)
     aggregation_functions = {'counts': 'sum'}
@@ -141,15 +162,16 @@ def get_frequency_set(df: DataFrame, qi_attr: list):
 # -------------------------------------------------------------------
 
 
-'''
-    Questa funzione permette di verificare la k-anonimity su una frequency list contenuta da un nodo
-    
-    :param node istanza di tipo node
-    :return is_k_anon nu valore booleano True se k-anonimus o viceversa
-'''
-
-
 def check_k_anonimity(node: Node):
+    """
+    Questa funzione permette di verificare la k-anonimity su una frequency list contenuta da un nodo
+
+    Args:
+        node (Node): istanza del nodo su cui controllare la k-anonimità
+
+    Returns:
+        [bool]: valore booleano True se k-anonimo, False se non k-anonimo
+    """
     is_k_anon = True
     for col, row in node.frequency_set.iteritems():
         if col == "counts":
@@ -162,7 +184,17 @@ def check_k_anonimity(node: Node):
 # -------------------------------------------------------------------
 
 
-def calculate_frequency_set_from_parent(frequency_set_parent, qi_dict_node):
+def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_node:dict):
+    """
+    Questa funzione calcola il nuovo frequency set partendo dal frequency set del nodo parente
+
+    Args:
+        frequency_set_parent (DataFrame): frequency set del nodo parente da cui calcolare il successivo
+        qi_dict_node (dict): dizionario dei QI presi in considerazione dal nodo
+
+    Returns:
+        [DataFrame]: nuovo frequency set del nodo figlio
+    """
 
     # trovo i nomi dei qi con level come suffisso (es: zip_code, 0 -> zip_code0)
     qi_with_levels_node = []
@@ -204,6 +236,13 @@ def calculate_frequency_set_from_parent(frequency_set_parent, qi_dict_node):
 
 
 def mark_descendant(graph: Graph, node: Node):
+    """
+    Questa funzione segna tutti i nodi discendenti dato un certo nodo e un grafo che lo contiene
+
+    Args:
+        graph (Graph): grafo contenente i nodi da marcare
+        node (Node): nodo da cui calcolare i discendenti
+    """
     # Marca il nodi e le suoi dirette generalizzazioni
     graph.take_node(node.id).set_marked(True)
     family = [node]
@@ -216,6 +255,16 @@ def mark_descendant(graph: Graph, node: Node):
 
 
 def core_incognito(dataset, qi_list):
+    """
+    Funzione principale contenente il core dell'algoritmo Incognito
+
+    Args:
+        dataset (DataFrame): dataset da anonimizzare
+        qi_list (list): lista contenente tutti i QI per cui è necessario generalizzare
+
+    Returns:
+        [int]: 0
+    """
 
     graph = Graph()
     queue = []

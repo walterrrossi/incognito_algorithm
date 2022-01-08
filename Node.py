@@ -2,7 +2,7 @@ from pandas.core.frame import DataFrame
 
 
 class Node:
-
+    
     _ID = 0
     is_root = False
     marked = False
@@ -13,6 +13,14 @@ class Node:
     parent2 = 0
 
     def __init__(self, marked, q_identifiers, generalization_level):
+        """
+        Funzione di inizializzazione classe nodo
+
+        Args:
+            marked (bool): valore booleano che indica se il nodo è k-anonimo
+            q_identifiers (list): lista con id dei QI da anonimizzare
+            generalization_level (list): lista dei livelli di generalizzazione
+        """
         self.id = self._ID
         self.__class__._ID += 1
         self.marked = marked
