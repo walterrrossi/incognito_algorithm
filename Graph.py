@@ -40,5 +40,6 @@ class Graph:
 
     def get_parent(self, node):
         for edge in self.edges:
-            if edge[1] == node.id:
+            if (edge[1] == node.id):
                 return self.take_node(edge[0])
+

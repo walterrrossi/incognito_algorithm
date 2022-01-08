@@ -33,4 +33,5 @@ class Node:
 
     def print_info(self):
         print("id:" + str(self.id)+" " + str(self.q_identifiers_list) +
-              " " + str(self.generalization_level))
+              " " + str(self.generalization_level) + " "+ str(self.marked))
+    
