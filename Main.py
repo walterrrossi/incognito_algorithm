@@ -394,7 +394,7 @@ def core_incognito(dataset, qi_list):
 
 # -------------------------------------------------------------------
 
-# -------------------------------------------------------------------
+# DATASET
 start_time = time.time()
 #dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
 
@@ -416,25 +416,6 @@ q_identifiers_list_string = ["sex", "age", "education", "native-country"]
 # generalization_levels = [4, 4, 6]   # anche ottenibile da file
 # generalization_levels = [2, 2, 3]   # anche ottenibile da file
 generalization_levels = [2, 5, 4, 3]   # anche ottenibile da file
-
-
-# DATASET
-start_time = time.time()
-#dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
-
-dataset = pd.read_csv("datasets/db_100.csv", dtype=str)
-dataset = dataset.drop(["id", "disease"], axis=1)
-
-# -------------------------------------------------------------------
-
-
-# INPUTS
-k_anonimity = 2
-q_identifiers_list = [1, 2, 3]
-q_identifiers_list_string = ["age", "city_birth", "zip_code"]
-#q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
-generalization_levels = [4, 4, 6]   # anche ottenibile da file
-# generalization_levels = [2, 2, 3]   # anche ottenibile da file
 
 q_identifiers_tag_id_dict = dict(
     zip(q_identifiers_list_string, q_identifiers_list))
