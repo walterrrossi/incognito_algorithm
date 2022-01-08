@@ -328,7 +328,8 @@ def core_incognito(dataset, qi_list):
                 dataset, qi_dict_node, generalizations_table)
             for name_old in dataset_generalized:
                 name_new = name_old.split("|")[0]
-                dataset_generalized.rename(columns={name_old:name_new}, inplace=True)
+                dataset_generalized.rename(
+                    columns={name_old: name_new}, inplace=True)
             print("Dataset generalizzato:")
             print(dataset_generalized)
             break
