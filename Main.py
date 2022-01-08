@@ -241,10 +241,10 @@ def core_incognito(dataset, qi_list):
 
         while len(queue) > 0:
             node = queue.pop(0)
-            print("///////////////")
+            print("---------------")
             print("NODO CORRENTE:")
             node.print_info()
-            print("///////////////")
+            print("-----------")
             if node.marked == False:
                 # Generalizzare il dataset considerando il nodo
                 qi_dict_node2 = dict(
