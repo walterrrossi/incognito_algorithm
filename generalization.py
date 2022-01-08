@@ -19,14 +19,14 @@ from pandas.core.frame import DataFrame
 def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_tag_id_dict: dict, q_identifiers_id_lev_dict: dict):
     all_gen = pd.DataFrame()
     for tag in generalizations_tag:
-        #path = str("datasets/{}_generalization.csv").format(str(tag))
-        path = str("datasets/{}_generalization.csv").format(str(tag))
-        df_one_gen = pd.read_csv(path, header=None, dtype=str)
+        # path = str("datasets/{}_generalization.csv").format(str(tag))
+        path = str("datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(str(tag))
+        df_one_gen = pd.read_csv(path, header=None, sep=(";"), dtype=str)
         for key, qi_id in q_identifiers_tag_id_dict.items():
             if key == tag:
                 for i in range(0, q_identifiers_id_lev_dict[qi_id]):
                     tmp_df = pd.DataFrame()
-                    column_name = str("{}{}").format(key, i)
+                    column_name = str("{}|{}").format(key, i)
                     tmp_df[column_name] = df_one_gen.iloc[:, i]
                     all_gen = pd.concat([all_gen, tmp_df], axis=1)
 
@@ -49,14 +49,13 @@ def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_t
     :return df_generalized è un DataFrame contente solo le colonne di QI generalizzati al livello richiesto
 '''
 
-
 def generalize_data(dataset: DataFrame, generalization_levels: dict, all_generalizations: DataFrame):
     df_original = copy.copy(dataset)
     df_generalized = pd.DataFrame()
     for index, level in generalization_levels.items():
         to_generalize = df_original.loc[:, index]
-        lev_string = str("{}{}").format(index, level)
-        ind_string = str("{}{}").format(index, 0)
+        lev_string = str("{}|{}").format(index, level)
+        ind_string = str("{}|{}").format(index, 0)
         lookup = pd.Series(
             all_generalizations[lev_string].values, index=all_generalizations[ind_string]).to_dict()
         for row in to_generalize:
@@ -64,6 +63,8 @@ def generalize_data(dataset: DataFrame, generalization_levels: dict, all_general
                 if str(original) == str(row):
                     to_generalize.replace(to_replace=str(
                         original), inplace=True, value=str(anonymized))
-        df_generalized[index] = to_generalize
+        # THIS COMMENTED VERSION IS TO HAVE COLUMNS ORIGINAL NAMES
+        # df_generalized[index] = to_generalize
+        df_generalized[lev_string] = to_generalize
 
     return df_generalized
