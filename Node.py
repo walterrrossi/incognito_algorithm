@@ -28,7 +28,6 @@ class Node:
     q_identifiers_list = []
     generalization_level = []
     frequency_set = DataFrame
-    suppressed_tuples=[]
     parent1 = 0
     parent2 = 0
 
@@ -46,6 +45,7 @@ class Node:
         self.marked = marked
         self.q_identifiers_list = q_identifiers
         self.generalization_level = generalization_level
+        self.suppressed_tuples = []
 
     def set_is_root(self, is_root):
         """

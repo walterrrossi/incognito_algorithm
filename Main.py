@@ -74,11 +74,12 @@ def initialize_graph(q_identifiers_id_lev_dict):
 
             # if the level is 0 there is no connection with the previous one
             if level != 0:
-                graph.edges.append([id_current+1, id_current])
+                graph.edges.append([id_current + 1, id_current])
             if level == 0:
                 node.set_is_root(True)
             graph.add_node(node)
     return graph
+
 
 # -------------------------------------------------------------------
 
@@ -153,6 +154,7 @@ def graph_generation(s: list, edges: list):
     newGraph.check_roots()
     return newGraph
 
+
 # -------------------------------------------------------------------
 
 
@@ -170,6 +172,7 @@ def get_frequency_set_root(df: DataFrame):
     qi_frequency_set = df.value_counts().reset_index(name='counts')
 
     return qi_frequency_set
+
 
 # -------------------------------------------------------------------
 
@@ -191,6 +194,7 @@ def get_frequency_set(df: DataFrame, qi_attr: list):
         aggregation_functions).reset_index()
 
     return qi_frequency_set
+
 
 # -------------------------------------------------------------------
 
@@ -217,18 +221,62 @@ def check_k_anonimity(node: Node):
     n_suppressed_rows = 0
     dict_records = node.frequency_set.to_dict("records")
     for record in dict_records:
-        if(record["counts"] < k_anonimity):
-            is_k_anon = False
-            break
-        else:
-            n_suppressed_rows =+ record["counts"]
-            del record["counts"]
-            node.suppressed_tuples.append(record)
+        if (record["counts"] < k_anonimity):
+            if (is_suppression_enabled):
+                if (n_suppressed_rows + record["counts"] > threshold
+                        and is_suppression_enabled):
+                    is_k_anon = False
+                    break
+
+                else:
+                    print("passo da suppression")
+                    n_suppressed_rows += record["counts"]
+                    del record["counts"]
+                    node.suppressed_tuples.append(record)
+            else:
+                is_k_anon = False
+                break
     return is_k_anon
+
+
 # -------------------------------------------------------------------
 
 
-def calculate_frequency_set_from_parent(frequency_set_parent: DataFrame, qi_dict_node: dict):
+def suppression_rows(node: Node):
+    """
+    This function is used to find the query to be executed in order to find the rows that must be suppressed
+
+    Args:
+       node (Node): Node with the frequency set to be suppressed
+
+    Returns:
+        str: query to be executed
+    """
+    query = ""
+    counter2 = 0
+    for d in node.suppressed_tuples:
+        counter1 = 0
+        print(d)
+        query += "("
+        for key, value in d.items():
+            if (counter1 < len(d.keys()) - 1):
+                query += key.split("|")[0] + " == " + "'" + value + "'" + " and "
+            else:
+                query += key.split("|")[0] + " == " + "'" + value + "'"
+            counter1 += 1
+        if (counter2 < len(node.suppressed_tuples) - 1):
+            query += ") or "
+        else:
+            query += ")"
+        counter2 += 1
+    return query
+
+
+# -------------------------------------------------------------------
+
+
+def calculate_frequency_set_from_parent(frequency_set_parent: DataFrame,
+                                        qi_dict_node: dict):
     """
     This function calculates the new frequency set of a node starting from the frequency set of his parent node.
 
@@ -271,12 +319,15 @@ def calculate_frequency_set_from_parent(frequency_set_parent: DataFrame, qi_dict
     # new_frequency_set_old = get_frequency_set_root(dataset_generalized)
 
     # 2 - optimized method (finding the freq. set. from the parent freq. set. joining and updating the counts)
-    joined_table = pd.merge(
-        frequency_set_parent, small_generalization_table, on=old_qi).filter(items=freq_set_attr)
-    new_frequency_set = get_frequency_set(
-        joined_table, qi_with_levels_node)
+    joined_table = pd.merge(frequency_set_parent,
+                            small_generalization_table,
+                            on=old_qi).filter(items=freq_set_attr)
+    new_frequency_set = get_frequency_set(joined_table, qi_with_levels_node)
+    new_frequency_set = new_frequency_set.sort_values("counts",
+                                                      ascending=False)
 
     return new_frequency_set
+
 
 # -------------------------------------------------------------------
 
@@ -292,7 +343,7 @@ def mark_descendant(graph: Graph, node: Node):
     # Marking the node and its direct generalizations
     graph.take_node(node.id).set_marked(True)
     family = [node]
-    while(len(family) != 0):
+    while (len(family) != 0):
         descendant = family.pop(-1)
         for edge in graph.edges:
             if edge[0] == descendant.id:
@@ -320,7 +371,7 @@ def core_incognito(dataset, qi_list):
     _log("[LOG] Created the initial graph")
     graph_list = [graph_initial]
     for i in range(0, len(qi_list)):
-        _log("[LOG] Started the cycle %s/%s" % (i+1, len(qi_list)))
+        _log("[LOG] Started the cycle %s/%s" % (i + 1, len(qi_list)))
 
         graph = graph_list[-1]
 
@@ -370,11 +421,13 @@ def core_incognito(dataset, qi_list):
 
                     node.frequency_set = calculate_frequency_set_from_parent(
                         frequency_set_parent, qi_dict_node)
-                    _log("[LOG] Calculated the frequency set from a parent node")
+                    _log(
+                        "[LOG] Calculated the frequency set from a parent node"
+                    )
 
                 # Check k-anonimity
                 is_k_anon = check_k_anonimity(node)
-                if(is_k_anon):
+                if (is_k_anon):
                     _log("[LOG] This node is k-anonymous: ", endl=False)
                     node.print_info()
                     mark_descendant(graph, node)
@@ -389,8 +442,8 @@ def core_incognito(dataset, qi_list):
                             queue.append(graph.take_node(edge[1]))
                     # ------------------------------------------------
                     # Sorting queue in height order
-                    queue = sorted(queue, key=lambda node: sum(
-                        node.generalization_level))
+                    queue = sorted(
+                        queue, key=lambda node: sum(node.generalization_level))
 
         _log("[LOG] Generating a new graph")
         g = graph_generation(s, graph.edges)
@@ -401,8 +454,8 @@ def core_incognito(dataset, qi_list):
     _log("[LOG] End of the core_algorithm")
     _log("[LOG] Selecting the best generalization...")
     final_graph = graph_list[-2]
-    final_graph.nodes = sorted(
-        final_graph.nodes, key=lambda n: sum(n.generalization_level))
+    final_graph.nodes = sorted(final_graph.nodes,
+                               key=lambda n: sum(n.generalization_level))
     for node in final_graph.nodes:
         if node.marked == True:
             qi_dict_node2 = dict(
@@ -412,16 +465,23 @@ def core_incognito(dataset, qi_list):
                 for id2 in qi_dict_node2.keys():
                     if id == id2:
                         qi_dict_node[tag] = qi_dict_node.pop(id2)
-            dataset_generalized = generalize_data(
-                dataset, qi_dict_node, generalizations_table)
+            dataset_generalized = generalize_data(dataset, qi_dict_node,
+                                                  generalizations_table)
             _log("[LOG] Best generalization: ", endl=False)
             node.print_info()
-            for name_old in dataset_generalized:
-                name_new = name_old.split("|")[0]
-                dataset_generalized.rename(
-                    columns={name_old: name_new}, inplace=True)
             dataset_generalized = pd.concat(
                 [dataset_generalized, cutted_columns], axis=1)
+            # Find the query to execute the suppression
+
+            for name_old in dataset_generalized:
+                name_new = name_old.split("|")[0]
+                dataset_generalized.rename(columns={name_old: name_new},
+                                           inplace=True)
+            if (is_suppression_enabled):
+                query = suppression_rows(node)
+                to_drop = dataset_generalized.query(query)
+                dataset_generalized.drop(to_drop.index, inplace=True)
+            # print(dat)
             print("----------------------------------")
             print("FINAL GRAPH")
             graph.print_graph()
@@ -433,9 +493,8 @@ def core_incognito(dataset, qi_list):
             break
     return 0
 
+
 # -------------------------------------------------------------------
-
-
 '''
     MAIN
 '''
@@ -454,12 +513,15 @@ if __name__ == "__main__":
     # adult
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
     dataset = dataset.loc[:1000, :]
-    cutted_columns = dataset.loc[:, ["race", "marital-status",
-                                     "workclass", "occupation", "salary-class"]]
-    dataset = dataset.drop(["ID", "race", "marital-status",
-                            "workclass", "occupation", "salary-class"], axis=1)
-    """ cutted_columns = dataset.loc[:, ["workclass", "salary-class"]]
-    dataset = dataset.drop(["ID", "workclass", "salary-class"], axis=1) """
+    cutted_columns = dataset.loc[:, [
+        "race", "maritalStatus", "workclass", "occupation", "salaryClass"
+    ]]
+    dataset = dataset.drop([
+        "ID", "race", "maritalStatus", "workclass", "occupation", "salaryClass"
+    ],
+                           axis=1)
+    """ cutted_columns = dataset.loc[:, ["workclass", "salaryClass"]]
+    dataset = dataset.drop(["ID", "workclass", "salaryClass"], axis=1) """
 
     _log("[LOG] Dataset loaded")
     print(dataset)
@@ -469,13 +531,15 @@ if __name__ == "__main__":
 
     # K-anonimity
     k_anonimity = 2
+    threshold = 10
+    is_suppression_enabled = False
     _log("[LOG] Started with k-anonimity: %s" % k_anonimity)
 
     # adult
-    q_identifiers_list_string = ["sex", "age", "education", "native-country"]
+    q_identifiers_list_string = ["sex", "age", "education", "nativeCountry"]
     q_identifiers_list = [1, 2, 3, 4]
     generalization_levels = [2, 5, 4, 3]
-    """ q_identifiers_list_string = ["sex", "age", "education", "native-country", "marital-status", "occupation", "race"]
+    """ q_identifiers_list_string = ["sex", "age", "education", "nativeCountry", "maritalStatus", "occupation", "race"]
     q_identifiers_list = [1, 2, 3, 4, 5, 6, 7]
     generalization_levels = [2, 5, 4, 3, 3, 3, 2] """
 
@@ -507,7 +571,8 @@ if __name__ == "__main__":
 
     # getting the generalization table
     generalizations_table = create_generalization_hierarchies(
-        q_identifiers_list_string, q_identifiers_tag_id_dict, q_identifiers_id_lev_dict)
+        q_identifiers_list_string, q_identifiers_tag_id_dict,
+        q_identifiers_id_lev_dict)
 
     # ...................................
     # INCOGNITO ALGORITHM
