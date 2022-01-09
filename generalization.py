@@ -67,7 +67,7 @@ def generalize_data(dataset: DataFrame, generalization_levels: dict, all_general
 
     Args:
         dataset (DataFrame): original DataFrame containing all tuples to be generalized
-        generalization_levels (dict): a dictionary containing key-value pairs of the type (integer id of the QI):(level of generalization),
+        generalization_levels (dict): a dictionary containing key-value pairs of the type (string tag of the QI):(level of generalization),
                                         that identify the levels to which it is necessary to generalize the various QIs
         all_generalizations (DataFrame): DataFrame che ritorna la funziona create_generalization_hierarchies (vedi sopra)
 
@@ -77,6 +77,7 @@ def generalize_data(dataset: DataFrame, generalization_levels: dict, all_general
     df_original = copy.copy(dataset)
     df_generalized = pd.DataFrame()
     for index, level in generalization_levels.items():
+        print("[LOG] Generalizing data for attribute '%s'..." % index)
         to_generalize = df_original.loc[:, index]
         lev_string = str("{}|{}").format(index, level)
         ind_string = str("{}|{}").format(index, 0)

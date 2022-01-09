@@ -20,6 +20,7 @@
 import pandas as pd
 import copy
 import time
+import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -30,6 +31,23 @@ from Graph import Graph
 from Node import Node
 
 # -------------------------------------------------------------------
+
+
+def _log(content, enabled=True, endl=True):
+    """
+    Prints a log message.
+
+    Args:
+        content: Content of the message
+        enabled (bool): If False the message is not printed
+        endl (bool): If false write on the same line
+    """
+
+    if enabled:
+        if endl:
+            print(content)
+        else:
+            sys.stdout.write('\r' + content)
 
 
 def initialize_graph(q_identifiers_id_lev_dict):
@@ -76,7 +94,6 @@ def graph_generation(s: list, edges: list):
     Returns:
         [Graph]: an instance of type graph that represents the generated graph and that will be used for the next cycle
     """
-
     newGraph = Graph()
 
     for p in range(len(s)):
@@ -289,9 +306,10 @@ def core_incognito(dataset, qi_list):
     queue = []
 
     graph_initial = initialize_graph(q_identifiers_id_lev_dict)
+    _log("[LOG] Created the initial graph")
     graph_list = [graph_initial]
     for i in range(0, len(qi_list)):
-        print("- START CYCLE")
+        _log("[LOG] Started the cycle %s/%s" % (i+1, len(qi_list)))
 
         graph = graph_list[-1]
 
@@ -305,15 +323,12 @@ def core_incognito(dataset, qi_list):
         queue.extend(roots)
 
         queue = sorted(queue, key=lambda n: sum(n.generalization_level))
+        _log("[LOG] Analyzing the graph with a bottom-up BFS")
 
         while len(queue) > 0:
             node = queue.pop(0)
-            print("---------------")
-            print("- CURRENT NODE:")
-            node.print_info()
-            print("-----------")
             if node.marked == False:
-                # Generelize the dataset considering the node
+                # Generalize the dataset considering the node
                 qi_dict_node2 = dict(
                     zip(node.q_identifiers_list, node.generalization_level))
                 qi_dict_node = copy.copy(qi_dict_node2)
@@ -323,13 +338,13 @@ def core_incognito(dataset, qi_list):
                             qi_dict_node[tag] = qi_dict_node.pop(id2)
 
                 if node.is_root == True:
-
                     dataset_generalized = generalize_data(
                         dataset, qi_dict_node, generalizations_table)
-
+                    _log("[LOG] Finished generalization of the root node")
                     # 1 - primo metodo (calcolo freq set)
                     new_frequency_set_root = get_frequency_set_root(
                         dataset_generalized)
+                    _log("[LOG] Calculated the frequency set of the root node")
 
                     # 2 - metodo alternativo
                     # starting_frequency_set = copy.copy(dataset_generalized)
@@ -344,12 +359,13 @@ def core_incognito(dataset, qi_list):
 
                     node.frequency_set = calculate_frequency_set_from_parent(
                         frequency_set_parent, qi_dict_node)
+                    _log("[LOG] Calculated the frequency set from a parent node")
 
                 # Check k-anonimity
                 is_k_anon = check_k_anonimity(node)
-
                 if(is_k_anon):
-
+                    _log("[LOG] This node is k-anonymous: ", endl=False)
+                    node.print_info()
                     mark_descendant(graph, node)
 
                 else:
@@ -361,30 +377,23 @@ def core_incognito(dataset, qi_list):
                         if edge[0] == node.id:
                             queue.append(graph.take_node(edge[1]))
                     # ------------------------------------------------
-                    # Sort della lista in ordine di altezza
+                    # Sorting queue in height order
                     queue = sorted(queue, key=lambda node: sum(
                         node.generalization_level))
 
-        graph.print_graph()
-
-        print("- S NODES:")
-        for m in s:
-            m.print_info()
-        print("- GRAPH:")
+        _log("[LOG] Generating a new graph")
         g = graph_generation(s, graph.edges)
-        g.print_graph()
+        _log("[LOG] Graph generated")
         graph_list.append(g)
 
-        print("- END CYCLE")
-
     print("")
-    print("- COMPLETED")
+    _log("[LOG] End of the core_algorithm")
+    _log("[LOG] Selecting the best generalization...")
     final_graph = graph_list[-2]
     final_graph.nodes = sorted(
         final_graph.nodes, key=lambda n: sum(n.generalization_level))
     for node in final_graph.nodes:
         if node.marked == True:
-            node.print_info()
             qi_dict_node2 = dict(
                 zip(node.q_identifiers_list, node.generalization_level))
             qi_dict_node = copy.copy(qi_dict_node2)
@@ -394,6 +403,8 @@ def core_incognito(dataset, qi_list):
                         qi_dict_node[tag] = qi_dict_node.pop(id2)
             dataset_generalized = generalize_data(
                 dataset, qi_dict_node, generalizations_table)
+            _log("[LOG] Best generalization: ", endl=False)
+            node.print_info()
             for name_old in dataset_generalized:
                 name_new = name_old.split("|")[0]
                 dataset_generalized.rename(
@@ -401,7 +412,11 @@ def core_incognito(dataset, qi_list):
             dataset_generalized = pd.concat(
                 [dataset_generalized, cutted_columns], axis=1)
             print("----------------------------------")
-            print("- GENERALIZED DATASET:")
+            print("FINAL GRAPH")
+            graph.print_graph()
+            print("----------------------------------")
+            print("----------------------------------")
+            print("GENERALIZED DATASET")
             print(dataset_generalized)
             print("----------------------------------")
             break
@@ -427,23 +442,33 @@ if __name__ == "__main__":
 
     # adult
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
-    dataset = dataset.loc[:1000, :]
-    cutted_columns = dataset.loc[:, ["race", "marital-status",
+    dataset = dataset.loc[:265, :]
+    """ cutted_columns = dataset.loc[:, ["race", "marital-status",
                                      "workclass", "occupation", "salary-class"]]
     dataset = dataset.drop(["ID", "race", "marital-status",
-                            "workclass", "occupation", "salary-class"], axis=1)
-    print(cutted_columns)
+                            "workclass", "occupation", "salary-class"], axis=1) """
+    cutted_columns = dataset.loc[:, ["workclass", "salary-class"]]
+    dataset = dataset.drop(["ID", "workclass", "salary-class"], axis=1)
+
+    _log("[LOG] Dataset loaded")
+    print(dataset)
 
     # ...................................
     # DEFINING INPUTS
 
     # K-anonimity
-    k_anonimity = 4
+    k_anonimity = 2
+    _log("[LOG] Started with k-anonimity: %s" % k_anonimity)
 
     # adult
-    q_identifiers_list_string = ["sex", "age", "education", "native-country"]
+    """ q_identifiers_list_string = ["sex", "age", "education", "native-country"]
     q_identifiers_list = [1, 2, 3, 4]
-    generalization_levels = [2, 5, 4, 3]
+    generalization_levels = [2, 5, 4, 3] """
+    q_identifiers_list_string = ["sex", "age", "education", "native-country", "marital-status", "occupation", "race"]
+    q_identifiers_list = [1, 2, 3, 4, 5, 6, 7]
+    generalization_levels = [2, 5, 4, 3, 3, 3, 2]
+
+    _log("[LOG] Quasi-identifier to anonymize: %s" % q_identifiers_list_string)
 
     # datafly
     # q_identifiers_list_string = ["age", "city_birth", "zip_code"]
@@ -455,11 +480,11 @@ if __name__ == "__main__":
 
     # ...................................
 
-    #............. Plot .................
+    # ............. Plot .................
     for attr in q_identifiers_list_string:
         sns.displot(dataset, x=attr)
     plt.show()
-    
+    _log("[LOG] Plotted the distribution of each QI")
 
     # PREPARATION OF VARIABLES AND STRUCTURES
 
@@ -472,7 +497,6 @@ if __name__ == "__main__":
     # getting the generalization table
     generalizations_table = create_generalization_hierarchies(
         q_identifiers_list_string, q_identifiers_tag_id_dict, q_identifiers_id_lev_dict)
-    print(generalizations_table)
 
     # ...................................
     # INCOGNITO ALGORITHM
@@ -484,6 +508,6 @@ if __name__ == "__main__":
     # EVALUATION OF THE RESULTS
 
     # showing evaluation parameters
-    print("Execution time: " + str(time.time() - start_time) + "s")
+    _log("[LOG] Execution time: %s s" % str(time.time() - start_time))
 
     # ...................................

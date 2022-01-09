@@ -19,8 +19,9 @@
 
 from pandas.core.frame import DataFrame
 
+
 class Node:
-    
+
     _ID = 0
     is_root = False
     marked = False
@@ -45,7 +46,6 @@ class Node:
         self.q_identifiers_list = q_identifiers
         self.generalization_level = generalization_level
 
-
     def set_is_root(self, is_root):
         """
         Function to set the Node as root.
@@ -54,7 +54,6 @@ class Node:
             is_root (bool): boolean value indicating whether the node is root
         """
         self.is_root = is_root
-
 
     def set_marked(self, marked):
         """
@@ -65,7 +64,6 @@ class Node:
         """
         self.marked = marked
 
-
     def set_q_identifiers_list(self, q_identifiers_list):
         """
         Setter of the QI-list.
@@ -74,7 +72,6 @@ class Node:
             q_identifiers_list (list): list with QI ids to be anonymized
         """
         self.q_identifiers_list = q_identifiers_list
-
 
     def set_gen_level(self, generalization_level):
         """
@@ -85,12 +82,10 @@ class Node:
         """
         self.generalization_level = generalization_level
 
-
     def print_info(self):
         """
         Function to show informations about the Node.
 
         """
         print("id:" + str(self.id)+" " + str(self.q_identifiers_list) +
-              " " + str(self.generalization_level) + " "+ str(self.marked))
-    
+              " " + str(self.generalization_level))
