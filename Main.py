@@ -1,3 +1,22 @@
+"""
+    INCOGNITO_ALGORITHM
+    
+    K-anonymize a Dataset using Incognito Algorithm.
+
+    - Main.py
+
+    Summary:
+        Core of the algorithm and main functions.
+
+    Authors:
+        Alessio Formica, Walter Rossi, Riccardo Poli.
+        Unige, Data Protection & Privacy.
+
+    Theoretical Sources:
+        https://www.researchgate.net/publication/221213050_Incognito_Efficient_Full-Domain_K-Anonymity
+        By Le Fevre, DeWitt, Ramakrishnan   
+"""
+
 import pandas as pd
 import copy
 import time
@@ -358,6 +377,7 @@ def core_incognito(dataset, qi_list):
 
         print("- END CYCLE")
 
+    print("")
     print("- COMPLETED")
     final_graph = graph_list[-2]
     final_graph.nodes = sorted(
@@ -378,8 +398,10 @@ def core_incognito(dataset, qi_list):
                 name_new = name_old.split("|")[0]
                 dataset_generalized.rename(
                     columns={name_old: name_new}, inplace=True)
-            print("-- GENERALIZED DATASET:")
+            print("----------------------------------")
+            print("- GENERALIZED DATASET:")
             print(dataset_generalized)
+            print("----------------------------------")
             break
     return 0
 
@@ -405,7 +427,7 @@ if __name__ == "__main__":
     dataset = dataset.drop(["ID", "race", "marital-status",
                             "workclass", "occupation", "salary-class"], axis=1)
 
-    dataset = dataset.loc[:10000, :]
+    dataset = dataset.loc[:1000, :]
     
     # ...................................
     # DEFINING INPUTS

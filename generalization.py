@@ -1,9 +1,29 @@
+"""
+    INCOGNITO_ALGORITHM
+
+    K-anonymize a Dataset using Incognito Algorithm.
+
+    - generalization.py
+
+    Summary:
+        Functions to handle generalizations.
+            - create_generalization_hierarchies
+            - generalize_data
+
+    Authors:
+        Alessio Formica, Walter Rossi, Riccardo Poli.
+        Unige, Data Protection & Privacy.
+
+    Theoretical Sources:
+        https://www.researchgate.net/publication/221213050_Incognito_Efficient_Full-Domain_K-Anonymity
+        By Le Fevre, DeWitt, Ramakrishnan   
+"""
+
 import pandas as pd
 import copy
 from pandas.core.frame import DataFrame
 
 # -------------------------------------------------------------------
-
 
 def create_generalization_hierarchies(generalizations_tag: list, q_identifiers_tag_id_dict: dict, q_identifiers_id_lev_dict: dict):
     """

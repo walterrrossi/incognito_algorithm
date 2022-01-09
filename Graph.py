@@ -1,5 +1,23 @@
-from Node import Node
+"""
+    INCOGNITO_ALGORITHM
+    
+    K-anonymize a Dataset using Incognito Algorithm.
 
+    - Graph.py
+
+    Summary:
+        Class to define Graph object.
+
+    Authors:
+        Alessio Formica, Walter Rossi, Riccardo Poli.
+        Unige, Data Protection & Privacy.
+
+    Theoretical Sources:
+        https://www.researchgate.net/publication/221213050_Incognito_Efficient_Full-Domain_K-Anonymity
+        By Le Fevre, DeWitt, Ramakrishnan   
+"""
+
+from Node import Node
 
 class Graph:
 
