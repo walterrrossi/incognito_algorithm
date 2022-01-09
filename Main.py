@@ -20,6 +20,7 @@
 import pandas as pd
 import copy
 import time
+import seaborn as sns
 
 from pandas.core.frame import DataFrame
 from generalization import create_generalization_hierarchies
@@ -65,9 +66,7 @@ def initialize_graph(q_identifiers_id_lev_dict):
 
 def graph_generation(s: list, edges: list):
     """
-    This function generates a table with all the possible generalizations for each QI, creates a dictionary 
-    of dictionaries with as key the tag of the QI, while as value a dictionary that has as key the level of generalization and as 
-    value the list of all generalizations of that level.
+    This function generates the next graph, using the subset property, on the basis of the nodes and the edges received as input.
 
     Args:
         s (list): list containing the remaining nodes of the previous graph that will contribute to the formation of the nodes of the next graph
@@ -132,7 +131,7 @@ def graph_generation(s: list, edges: list):
 
     newGraph.edges = final_edges
 
-    # Setta i nodi roots
+    # Set the root nodes
     newGraph.check_roots()
     return newGraph
 
@@ -141,7 +140,7 @@ def graph_generation(s: list, edges: list):
 
 def get_frequency_set_root(df: DataFrame):
     """
-    This function calculates the frequency set of a root node, using a Pandas function to count each tuple.
+    This function calculates the frequency set of a root node, using a Pandas function to count each unique tuple.
 
     Args:
         df (DataFrame): generalized dataset of which is needed to calculate the frequency set
@@ -200,7 +199,7 @@ def check_k_anonimity(node: Node):
 # -------------------------------------------------------------------
 
 
-def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_node:dict):
+def calculate_frequency_set_from_parent(frequency_set_parent: DataFrame, qi_dict_node: dict):
     """
     This function calculates the new frequency set of a node starting from the frequency set of his parent node.
 
@@ -255,7 +254,7 @@ def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_
 
 def mark_descendant(graph: Graph, node: Node):
     """
-    This function marks all descendant nodes given a certain node and a graph containing them.
+    This function marks all descendant nodes, given a certain node and a graph containing them.
 
     Args:
         graph (Graph): graph containing the nodes to be marked
@@ -313,7 +312,7 @@ def core_incognito(dataset, qi_list):
             node.print_info()
             print("-----------")
             if node.marked == False:
-                # Generalizzare il dataset considerando il nodo
+                # Generelize the dataset considering the node
                 qi_dict_node2 = dict(
                     zip(node.q_identifiers_list, node.generalization_level))
                 qi_dict_node = copy.copy(qi_dict_node2)
@@ -355,7 +354,7 @@ def core_incognito(dataset, qi_list):
                 else:
                     s = list(filter(lambda n: n.id != node.id, s))
                     # ------------------------------------------------
-                    # Inserire dirette generazioni nella coda
+                    # Insert the direct generalization to the queue
 
                     for edge in graph.edges:
                         if edge[0] == node.id:
@@ -398,6 +397,8 @@ def core_incognito(dataset, qi_list):
                 name_new = name_old.split("|")[0]
                 dataset_generalized.rename(
                     columns={name_old: name_new}, inplace=True)
+            dataset_generalized = pd.concat(
+                [dataset_generalized, cutted_columns], axis=1)
             print("----------------------------------")
             print("- GENERALIZED DATASET:")
             print(dataset_generalized)
@@ -406,6 +407,7 @@ def core_incognito(dataset, qi_list):
     return 0
 
 # -------------------------------------------------------------------
+
 
 '''
     MAIN
@@ -424,14 +426,16 @@ if __name__ == "__main__":
 
     # adult
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
+    dataset = dataset.loc[:1000, :]
+    cutted_columns = dataset.loc[:, ["race", "marital-status",
+                                     "workclass", "occupation", "salary-class"]]
     dataset = dataset.drop(["ID", "race", "marital-status",
                             "workclass", "occupation", "salary-class"], axis=1)
+    print(cutted_columns)
 
-    dataset = dataset.loc[:1000, :]
-    
     # ...................................
     # DEFINING INPUTS
-    
+
     # K-anonimity
     k_anonimity = 4
 
@@ -449,6 +453,9 @@ if __name__ == "__main__":
     # generalization_levels = [2, 2, 3]
 
     # ...................................
+
+    sns.displot(dataset, x="sex")
+
     # PREPARATION OF VARIABLES AND STRUCTURES
 
     # getting the QI dictionaries
