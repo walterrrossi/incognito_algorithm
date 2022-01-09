@@ -21,6 +21,7 @@ import pandas as pd
 import copy
 import time
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 from pandas.core.frame import DataFrame
 from generalization import create_generalization_hierarchies
@@ -454,7 +455,11 @@ if __name__ == "__main__":
 
     # ...................................
 
-    sns.displot(dataset, x="sex")
+    #............. Plot .................
+    for attr in q_identifiers_list_string:
+        sns.displot(dataset, x=attr)
+    plt.show()
+    
 
     # PREPARATION OF VARIABLES AND STRUCTURES
 
