@@ -229,7 +229,6 @@ def check_k_anonimity(node: Node):
                     break
 
                 else:
-                    print("passo da suppression")
                     n_suppressed_rows += record["counts"]
                     del record["counts"]
                     node.suppressed_tuples.append(record)
