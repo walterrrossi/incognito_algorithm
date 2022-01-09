@@ -205,15 +205,26 @@ def check_k_anonimity(node: Node):
     Returns:
         [bool]: boolean value [True - if k-anonymous, False - if not k-anonymous]
     """
-    is_k_anon = True
+    """ is_k_anon = True
     for col, row in node.frequency_set.iteritems():
         if col == "counts":
             for el in row:
                 if(el < k_anonimity):
                     is_k_anon = False
                     break
+    return is_k_anon """
+    is_k_anon = True
+    n_suppressed_rows = 0
+    dict_records = node.frequency_set.to_dict("records")
+    for record in dict_records:
+        if(record["counts"] < k_anonimity):
+            is_k_anon = False
+            break
+        else:
+            n_suppressed_rows =+ record["counts"]
+            del record["counts"]
+            node.suppressed_tuples.append(record)
     return is_k_anon
-
 # -------------------------------------------------------------------
 
 
@@ -442,13 +453,13 @@ if __name__ == "__main__":
 
     # adult
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
-    dataset = dataset.loc[:265, :]
-    """ cutted_columns = dataset.loc[:, ["race", "marital-status",
+    dataset = dataset.loc[:1000, :]
+    cutted_columns = dataset.loc[:, ["race", "marital-status",
                                      "workclass", "occupation", "salary-class"]]
     dataset = dataset.drop(["ID", "race", "marital-status",
-                            "workclass", "occupation", "salary-class"], axis=1) """
-    cutted_columns = dataset.loc[:, ["workclass", "salary-class"]]
-    dataset = dataset.drop(["ID", "workclass", "salary-class"], axis=1)
+                            "workclass", "occupation", "salary-class"], axis=1)
+    """ cutted_columns = dataset.loc[:, ["workclass", "salary-class"]]
+    dataset = dataset.drop(["ID", "workclass", "salary-class"], axis=1) """
 
     _log("[LOG] Dataset loaded")
     print(dataset)
@@ -461,12 +472,12 @@ if __name__ == "__main__":
     _log("[LOG] Started with k-anonimity: %s" % k_anonimity)
 
     # adult
-    """ q_identifiers_list_string = ["sex", "age", "education", "native-country"]
+    q_identifiers_list_string = ["sex", "age", "education", "native-country"]
     q_identifiers_list = [1, 2, 3, 4]
-    generalization_levels = [2, 5, 4, 3] """
-    q_identifiers_list_string = ["sex", "age", "education", "native-country", "marital-status", "occupation", "race"]
+    generalization_levels = [2, 5, 4, 3]
+    """ q_identifiers_list_string = ["sex", "age", "education", "native-country", "marital-status", "occupation", "race"]
     q_identifiers_list = [1, 2, 3, 4, 5, 6, 7]
-    generalization_levels = [2, 5, 4, 3, 3, 3, 2]
+    generalization_levels = [2, 5, 4, 3, 3, 3, 2] """
 
     _log("[LOG] Quasi-identifier to anonymize: %s" % q_identifiers_list_string)
 
@@ -481,10 +492,10 @@ if __name__ == "__main__":
     # ...................................
 
     # ............. Plot .................
-    for attr in q_identifiers_list_string:
+    """ for attr in q_identifiers_list_string:
         sns.displot(dataset, x=attr)
     plt.show()
-    _log("[LOG] Plotted the distribution of each QI")
+    _log("[LOG] Plotted the distribution of each QI") """
 
     # PREPARATION OF VARIABLES AND STRUCTURES
 

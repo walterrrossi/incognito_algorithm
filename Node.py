@@ -28,6 +28,7 @@ class Node:
     q_identifiers_list = []
     generalization_level = []
     frequency_set = DataFrame
+    suppressed_tuples=[]
     parent1 = 0
     parent2 = 0
 
