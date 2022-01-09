@@ -102,13 +102,8 @@ def graph_generation(s: list, edges: list):
             if list(s[p].q_identifiers_list)[:-1] == list(s[q].q_identifiers_list)[:-1] and \
                     list(s[p].generalization_level)[:-1] == list(s[q].generalization_level)[:-1] and \
                     s[p].q_identifiers_list[-1] < s[q].q_identifiers_list[-1]:
-
-                qi1 = s[p].q_identifiers_list
-                qi2 = s[q].q_identifiers_list
-                gl1 = s[p].generalization_level
-                gl2 = s[q].generalization_level
-
-                nodeTemp = Node(False, [*qi1, qi2[-1]], [*gl1, gl2[-1]])
+                    
+                nodeTemp = Node(False, [*s[p].q_identifiers_list, s[q].q_identifiers_list[-1]], [*s[p].generalization_level, s[q].generalization_level[-1]])
 
                 nodeTemp.parent1 = s[p].id
                 nodeTemp.parent2 = s[q].id
