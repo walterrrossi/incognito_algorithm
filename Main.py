@@ -13,27 +13,27 @@ from Node import Node
 
 def initialize_graph(q_identifiers_id_lev_dict):
     """
-    Questa funzione inizializza il primo grafo dell'algoritmo. Questo grafo dovrá contenere come nodi i quasi identifier singoli con i loro
-    livelli di generalizzazione.
+    This function initializes the first graph of the algorithm. 
+    This graph must contain as nodes the individual quasi identifiers with their levels of generalization.
 
     Args:
-        q_identifiers_id_lev_dict (dict): un dizionario contenente coppie chiavi-valore del tipo (identificativo intero usato nei nodi):(livello di generalizzazione relativo a quel QI)
+        q_identifiers_id_lev_dict (dict): a dictionary containing key-value pairs of the type (integer identifier used in nodes):(level of generalization relative to that QI)
 
     Returns:
-        [Graph]: un'istanza di tipo grapo che contiene gli archi e nodi necessari per il primo ciclo dell'incognito
+        [Graph]: an instance of type graph that contains the necessary edges and nodes for the first cycle of Incognito
     """
 
     graph = Graph()
-    # Per ogni quasi identifier
+    # For each QI
     for q_id in dict(q_identifiers_id_lev_dict):
 
-        # per ogni livello massimo del quasi identifier creo il range tra questo e 0
+        # For each maximum level of the quasi identifier, setting the range between this and 0
         for level in reversed(range(q_identifiers_id_lev_dict[q_id])):
 
             node = Node(False, [q_id], [level])
             id_current = node.id
 
-            # se il livello é 0 non c'é un collegamento con il precendente
+            # if the level is 0 there is no connection with the previous one
             if level != 0:
                 graph.edges.append([id_current+1, id_current])
             if level == 0:
@@ -46,16 +46,16 @@ def initialize_graph(q_identifiers_id_lev_dict):
 
 def graph_generation(s: list, edges: list):
     """
-    Questa funziona genera una tabella con tutte le possibili generalizzazioni per ogni QI, crea un dizionario di dizionari
-    con come chiave il tag del QI, mentre come valore un dizionario che a sua volta ha come chiave il livello di generalizzazione e come 
-    valore la lista di tutte le generalizzazioni di quel livello
+    This function generates a table with all the possible generalizations for each QI, creates a dictionary 
+    of dictionaries with as key the tag of the QI, while as value a dictionary that has as key the level of generalization and as 
+    value the list of all generalizations of that level.
 
     Args:
-        s (list): lista contenente i nodi rimasti del grafo precendente che contribuiranno alla formazione dei nodi del grafo sucessivo
-        edges (list): lista di archi del grafo precendente che contribuirá alla creazione degli archi del grafo sucessivo
+        s (list): list containing the remaining nodes of the previous graph that will contribute to the formation of the nodes of the next graph
+        edges (list): list of arcs of the previous graph that will contribute to the creation of the arcs of the next graph
 
     Returns:
-        [Graph]: un'istanza di tipo grafo che rappresenta il grafo generato e che sará utilizzato per il ciclo sucessivo
+        [Graph]: an instance of type graph that represents the generated graph and that will be used for the next cycle
     """
 
     newGraph = Graph()
@@ -119,40 +119,37 @@ def graph_generation(s: list, edges: list):
 
 # -------------------------------------------------------------------
 
-# METODO CON CONTEGGIO (richiede un dataset già generalizzato)
-
 
 def get_frequency_set_root(df: DataFrame):
     """
-    Questa funzione calcola il frequency set di un nodo radice, attraverso una funzione di pandas per contare i valori
+    This function calculates the frequency set of a root node, using a Pandas function to count each tuple.
 
     Args:
-        df (DataFrame): dataset generalizzato di cui calcolare il frequency set
+        df (DataFrame): generalized dataset of which is needed to calculate the frequency set
 
     Returns:
-        [DataFrame]: frequency set del nodo
+        [DataFrame]: frequency set of the root node
     """
 
     qi_frequency_set = df.value_counts().reset_index(name='counts')
 
     return qi_frequency_set
 
-# METODO CON AGGREGATE (richiede una tabella con gli attributi e con colonna counts già presente)
+# -------------------------------------------------------------------
 
 
 def get_frequency_set(df: DataFrame, qi_attr: list):
     """
-    Questa funzione calcola il frequency set di un nodo radice, attraverso una funzione di pandas
+    This function calculates the frequency set of a node, using a Pandas function to group and update the count of each tuple.
 
     Args:
-        df (DataFrame): dataset generalizzato di cui calcolare il frequency set
-        qi_attr (list): lista dei qi su cui calcolare il frequency set
+        df (DataFrame): frequency-set generalized dataset for which to update the set of frequencies
+        qi_attr (list): list of QI on which to calculate the frequency set (counts excluded) (es: list of -> qi_name|lev_of_generalization)
 
     Returns:
-        [DataFrame]: frequency set del nodo
+        [DataFrame]: node frequency set
     """
 
-    # qi_attr = ["age0", "zip_code1"]  (example)
     aggregation_functions = {'counts': 'sum'}
     qi_frequency_set = df.groupby(qi_attr).aggregate(
         aggregation_functions).reset_index()
@@ -164,13 +161,13 @@ def get_frequency_set(df: DataFrame, qi_attr: list):
 
 def check_k_anonimity(node: Node):
     """
-    Questa funzione permette di verificare la k-anonimity su una frequency list contenuta da un nodo
+    This function allows to check the k-anonymity from a frequency set of a particular node
 
     Args:
-        node (Node): istanza del nodo su cui controllare la k-anonimità
+        node (Node): node instance on which to check k-anonymity
 
     Returns:
-        [bool]: valore booleano True se k-anonimo, False se non k-anonimo
+        [bool]: boolean value [True - if k-anonymous, False - if not k-anonymous]
     """
     is_k_anon = True
     for col, row in node.frequency_set.iteritems():
@@ -186,29 +183,29 @@ def check_k_anonimity(node: Node):
 
 def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_node:dict):
     """
-    Questa funzione calcola il nuovo frequency set partendo dal frequency set del nodo parente
+    This function calculates the new frequency set of a node starting from the frequency set of his parent node.
 
     Args:
-        frequency_set_parent (DataFrame): frequency set del nodo parente da cui calcolare il successivo
-        qi_dict_node (dict): dizionario dei QI presi in considerazione dal nodo
+        frequency_set_parent (DataFrame): frequency set of the parent node
+        qi_dict_node (dict): QI dictionary taken into account by the node, with the format (QI_name):(level of generalization relative to that QI)
 
     Returns:
-        [DataFrame]: nuovo frequency set del nodo figlio
+        [DataFrame]: frequency set of the node
     """
 
-    # trovo i nomi dei qi con level come suffisso (es: zip_code, 0 -> zip_code0)
+    # Finding the list of qi with levels of generalization (es: list of -> qi_name|lev_of_generalization)
     qi_with_levels_node = []
     for key in qi_dict_node.keys():
         qi_with_levels_node.append(
             str("{}|{}").format(key, str(qi_dict_node[key])))
 
+    # Adding the counts column to a list of attributes (es: list of -> qi_name|lev_of_generalization; + counts)
     freq_set_attr = copy.copy(qi_with_levels_node)
     freq_set_attr.append("counts")
 
-    # trovo l'attributo che cambia con la generalizzazione
+    # Finding the QIs tag that changes from parent to child node
     old_qi = ""
     new_qi = ""
-
     for item in list(frequency_set_parent.columns):
         if item not in freq_set_attr:
             old_qi = item
@@ -218,15 +215,15 @@ def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_
             new_qi = item
             break
 
-    # modifico la generalization table
+    # Shrinking the generalization table for the actual usage
     small_generalization_table = generalizations_table.filter(
         items=[old_qi, new_qi]).dropna()
     small_generalization_table = small_generalization_table.drop_duplicates()
 
-    # 1 - vecchio metodo (ricalcolo freq set)
+    # 1 - standard method (finding the freq. set. from the generalized table such as for roots)
     # new_frequency_set_old = get_frequency_set_root(dataset_generalized)
 
-    # 2 -nuovo metodo (join e aggregate-count)
+    # 2 - optimized method (finding the freq. set. from the parent freq. set. joining and updating the counts)
     joined_table = pd.merge(
         frequency_set_parent, small_generalization_table, on=old_qi).filter(items=freq_set_attr)
     new_frequency_set = get_frequency_set(
@@ -234,16 +231,18 @@ def calculate_frequency_set_from_parent(frequency_set_parent:DataFrame, qi_dict_
 
     return new_frequency_set
 
+# -------------------------------------------------------------------
+
 
 def mark_descendant(graph: Graph, node: Node):
     """
-    Questa funzione segna tutti i nodi discendenti dato un certo nodo e un grafo che lo contiene
+    This function marks all descendant nodes given a certain node and a graph containing them.
 
     Args:
-        graph (Graph): grafo contenente i nodi da marcare
-        node (Node): nodo da cui calcolare i discendenti
+        graph (Graph): graph containing the nodes to be marked
+        node (Node): node from which to calculate descendants
     """
-    # Marca il nodi e le suoi dirette generalizzazioni
+    # Marking the node and its direct generalizations
     graph.take_node(node.id).set_marked(True)
     family = [node]
     while(len(family) != 0):
@@ -256,11 +255,12 @@ def mark_descendant(graph: Graph, node: Node):
 
 def core_incognito(dataset, qi_list):
     """
-    Funzione principale contenente il core dell'algoritmo Incognito
+    Main function containing the core of the Incognito algorithm.
+    https://www.researchgate.net/publication/221213050_Incognito_Efficient_Full-Domain_K-Anonymity
 
     Args:
-        dataset (DataFrame): dataset da anonimizzare
-        qi_list (list): lista contenente tutti i QI per cui è necessario generalizzare
+        dataset (DataFrame): dataset to be k-anonymized
+        qi_list (list): list containing all QIs for which it is necessary to generalize
 
     Returns:
         [int]: 0
@@ -272,7 +272,7 @@ def core_incognito(dataset, qi_list):
     graph_initial = initialize_graph(q_identifiers_id_lev_dict)
     graph_list = [graph_initial]
     for i in range(0, len(qi_list)):
-        print("ciclo iniziato")
+        print("- START CYCLE")
 
         graph = graph_list[-1]
 
@@ -290,7 +290,7 @@ def core_incognito(dataset, qi_list):
         while len(queue) > 0:
             node = queue.pop(0)
             print("---------------")
-            print("NODO CORRENTE:")
+            print("- CURRENT NODE:")
             node.print_info()
             print("-----------")
             if node.marked == False:
@@ -348,17 +348,17 @@ def core_incognito(dataset, qi_list):
 
         graph.print_graph()
 
-        print("S:")
+        print("- S NODES:")
         for m in s:
             m.print_info()
-        print("Grafo:")
+        print("- GRAPH:")
         g = graph_generation(s, graph.edges)
         g.print_graph()
         graph_list.append(g)
 
-        print("ciclo terminato")
+        print("- END CYCLE")
 
-    print("finito")
+    print("- COMPLETED")
     final_graph = graph_list[-2]
     final_graph.nodes = sorted(
         final_graph.nodes, key=lambda n: sum(n.generalization_level))
@@ -378,19 +378,22 @@ def core_incognito(dataset, qi_list):
                 name_new = name_old.split("|")[0]
                 dataset_generalized.rename(
                     columns={name_old: name_new}, inplace=True)
-            print("Dataset generalizzato:")
+            print("-- GENERALIZED DATASET:")
             print(dataset_generalized)
             break
     return 0
 
 # -------------------------------------------------------------------
 
-
+'''
+    MAIN
+'''
 if __name__ == "__main__":
 
     start_time = time.time()
 
-    # -DATASET-
+    # ...................................
+    # SELECTING THE DATASET
 
     # paper
     # dataset = pd.read_csv("datasets/paper/db_100.csv", dtype=str)
@@ -403,35 +406,50 @@ if __name__ == "__main__":
                             "workclass", "occupation", "salary-class"], axis=1)
 
     dataset = dataset.loc[:10000, :]
-    # -------------------------------------------------------------------
-
-    # INPUTS
+    
+    # ...................................
+    # DEFINING INPUTS
+    
+    # K-anonimity
     k_anonimity = 4
 
     # adult
     q_identifiers_list_string = ["sex", "age", "education", "native-country"]
     q_identifiers_list = [1, 2, 3, 4]
-    generalization_levels = [2, 5, 4, 3]   # anche ottenibile da file
+    generalization_levels = [2, 5, 4, 3]
 
     # datafly
     # q_identifiers_list_string = ["age", "city_birth", "zip_code"]
-    # generalization_levels = [4, 4, 6]   # anche ottenibile da file
+    # generalization_levels = [4, 4, 6]
 
     # paper
     # q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
-    # generalization_levels = [2, 2, 3]   # anche ottenibile da file
+    # generalization_levels = [2, 2, 3]
 
-    # -------------------------------------------------------------------
+    # ...................................
+    # PREPARATION OF VARIABLES AND STRUCTURES
 
+    # getting the QI dictionaries
     q_identifiers_tag_id_dict = dict(
         zip(q_identifiers_list_string, q_identifiers_list))
     q_identifiers_id_lev_dict = dict(
         zip(q_identifiers_list, generalization_levels))
 
+    # getting the generalization table
     generalizations_table = create_generalization_hierarchies(
         q_identifiers_list_string, q_identifiers_tag_id_dict, q_identifiers_id_lev_dict)
     print(generalizations_table)
 
+    # ...................................
+    # INCOGNITO ALGORITHM
+
+    # calling the Incognito algorithm
     core_incognito(dataset, q_identifiers_list)
 
+    # ...................................
+    # EVALUATION OF THE RESULTS
+
+    # showing evaluation parameters
     print("Execution time: " + str(time.time() - start_time) + "s")
+
+    # ...................................
