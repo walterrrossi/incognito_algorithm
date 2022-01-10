@@ -1,0 +1,33 @@
+,sex|1,age|4,education|0,nativeCountry|1,counts
+0,*,*,HS-grad,North America,323
+1,*,*,Some-college,North America,212
+2,*,*,Bachelors,North America,161
+3,*,*,Masters,North America,51
+4,*,*,Assoc-voc,North America,46
+5,*,*,11th,North America,39
+6,*,*,Assoc-acdm,North America,32
+7,*,*,10th,North America,18
+8,*,*,Doctorate,North America,15
+9,*,*,9th,North America,14
+10,*,*,7th-8th,North America,13
+11,*,*,Prof-school,North America,12
+12,*,*,5th-6th,North America,10
+13,*,*,12th,North America,9
+14,*,*,Bachelors,Asia,7
+15,*,*,Some-college,Asia,6
+16,*,*,HS-grad,Europe,5
+17,*,*,Bachelors,Europe,5
+18,*,*,1st-4th,North America,4
+19,*,*,Some-college,Europe,3
+20,*,*,Masters,Asia,3
+21,*,*,Preschool,North America,2
+22,*,*,Assoc-acdm,Europe,2
+23,*,*,9th,Europe,1
+24,*,*,Masters,Africa,1
+25,*,*,Assoc-acdm,Asia,1
+26,*,*,Doctorate,Asia,1
+27,*,*,Assoc-voc,South America,1
+28,*,*,7th-8th,South America,1
+29,*,*,Assoc-voc,Europe,1
+30,*,*,Assoc-voc,Asia,1
+31,*,*,HS-grad,Asia,1
