@@ -411,12 +411,12 @@ def core_incognito(dataset, qi_list):
                     dataset_generalized = generalize_data(
                         dataset, qi_dict_node, generalizations_table)
                     _log("[LOG] Finished generalization of the root node")
-                    # 1 - primo metodo (calcolo freq set)
+                    # 1 - standard method (finding frequency set from root generalized daset)
                     new_frequency_set_root = get_frequency_set_root(
                         dataset_generalized)
                     _log("[LOG] Calculated the frequency set of the root node")
 
-                    # 2 - metodo alternativo
+                    # 2 - alternative method
                     # starting_frequency_set = copy.copy(dataset_generalized)
                     # starting_frequency_set['counts'] = 1
                     # new_frequency_set_2 = get_frequency_set(starting_frequency_set, qi_with_levels_node)
