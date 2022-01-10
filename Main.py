@@ -102,8 +102,10 @@ def graph_generation(s: list, edges: list):
             if list(s[p].q_identifiers_list)[:-1] == list(s[q].q_identifiers_list)[:-1] and \
                     list(s[p].generalization_level)[:-1] == list(s[q].generalization_level)[:-1] and \
                     s[p].q_identifiers_list[-1] < s[q].q_identifiers_list[-1]:
-                    
-                nodeTemp = Node(False, [*s[p].q_identifiers_list, s[q].q_identifiers_list[-1]], [*s[p].generalization_level, s[q].generalization_level[-1]])
+
+                nodeTemp = Node(False, [
+                    *s[p].q_identifiers_list, s[q].q_identifiers_list[-1]
+                ], [*s[p].generalization_level, s[q].generalization_level[-1]])
 
                 nodeTemp.parent1 = s[p].id
                 nodeTemp.parent2 = s[q].id
@@ -254,7 +256,8 @@ def suppression_rows(node: Node):
         query += "("
         for key, value in d.items():
             if (counter1 < len(d.keys()) - 1):
-                query += key.split("|")[0] + " == " + "'" + value + "'" + " and "
+                query += key.split(
+                    "|")[0] + " == " + "'" + value + "'" + " and "
             else:
                 query += key.split("|")[0] + " == " + "'" + value + "'"
             counter1 += 1
@@ -484,7 +487,11 @@ def core_incognito(dataset, qi_list):
             print("----------------------------------")
             print("GENERALIZED DATASET")
             print(dataset_generalized)
-            dataset_generalized.to_csv(r'datasets/results/dataset_generalized.csv', index=None, sep=',', mode='w')
+            dataset_generalized.to_csv(
+                r'datasets/results/dataset_generalized.csv',
+                index=None,
+                sep=',',
+                mode='w')
             print("----------------------------------")
             break
     return 0
@@ -510,24 +517,29 @@ if __name__ == "__main__":
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
     all_columns_tags = list(dataset.columns.values)
     # Removing explicit identifiers
-    explicit_identifiers = ["ID"] # this is editable 
+    explicit_identifiers = ["ID"]  # this is editable
     dataset = dataset.drop(explicit_identifiers, axis=1)
-    all_columns_tags = [tag for tag in all_columns_tags if tag not in explicit_identifiers]
+    all_columns_tags = [
+        tag for tag in all_columns_tags if tag not in explicit_identifiers
+    ]
     # Selecting the number of rows
-    dataset = dataset.loc[:1000, :] # This is editable
+    dataset = dataset.loc[:1000, :]  # This is editable
     # Selection of QI
-    q_identifiers_list_string = ["sex", "age", "education", "nativeCountry"] # this is editable
-    q_identifiers_list = list(range(1, len(q_identifiers_list_string)+1))
+    q_identifiers_list_string = ["sex", "age", "education",
+                                 "nativeCountry"]  # this is editable
+    q_identifiers_list = list(range(1, len(q_identifiers_list_string) + 1))
     generalization_levels = []
     for qi in q_identifiers_list_string:
-        path = str(
-            "datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(str(qi))
+        path = str("datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(
+            str(qi))
         df = pd.read_csv(path, header=None, sep=(";"), dtype=str)
         generalization_levels.append(len(df.columns))
         del df
     print(generalization_levels)
-    
-    cutted_columns_tags = [tag for tag in all_columns_tags if tag not in q_identifiers_list_string]
+
+    cutted_columns_tags = [
+        tag for tag in all_columns_tags if tag not in q_identifiers_list_string
+    ]
     cutted_columns = dataset.loc[:, cutted_columns_tags]
     dataset = dataset.drop(cutted_columns_tags, axis=1)
 
@@ -543,15 +555,14 @@ if __name__ == "__main__":
     is_suppression_enabled = False
     _log("[LOG] Started with k-anonimity: %s" % k_anonimity)
 
-
     _log("[LOG] Quasi-identifier to anonymize: %s" % q_identifiers_list_string)
 
-
-    # ............. Plot .................
+    # Decomment if you want plot of th distribution (it will change the execution time)
+    """ # ............. Plot .................
     for attr in q_identifiers_list_string:
         sns.displot(dataset, x=attr)
     plt.show()
-    _log("[LOG] Plotted the distribution of each QI")
+    _log("[LOG] Plotted the distribution of each QI") """
 
     # PREPARATION OF VARIABLES AND STRUCTURES
 
