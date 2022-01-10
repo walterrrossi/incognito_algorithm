@@ -463,6 +463,7 @@ def core_incognito(dataset, qi_list):
                                                   generalizations_table)
             _log("[LOG] Best generalization: ", endl=False)
             node.print_info()
+            db = dataset_generalized
             dataset_generalized = pd.concat(
                 [dataset_generalized, cutted_columns], axis=1)
             # Find the query to execute the suppression
@@ -483,6 +484,7 @@ def core_incognito(dataset, qi_list):
             print("----------------------------------")
             print("GENERALIZED DATASET")
             print(dataset_generalized)
+            dataset_generalized.to_csv(r'datasets/results/dataset_generalized.csv', index=None, sep=',', mode='w')
             print("----------------------------------")
             break
     return 0
@@ -506,16 +508,28 @@ if __name__ == "__main__":
 
     # adult
     dataset = pd.read_csv("datasets/adult/adult.csv", dtype=str, sep=(";"))
-    dataset = dataset.loc[:1000, :]
-    cutted_columns = dataset.loc[:, [
-        "race", "maritalStatus", "workclass", "occupation", "salaryClass"
-    ]]
-    dataset = dataset.drop([
-        "ID", "race", "maritalStatus", "workclass", "occupation", "salaryClass"
-    ],
-                           axis=1)
-    """ cutted_columns = dataset.loc[:, ["workclass", "salaryClass"]]
-    dataset = dataset.drop(["ID", "workclass", "salaryClass"], axis=1) """
+    all_columns_tags = list(dataset.columns.values)
+    # Removing explicit identifiers
+    explicit_identifiers = ["ID"] # this is editable 
+    dataset = dataset.drop(explicit_identifiers, axis=1)
+    all_columns_tags = [tag for tag in all_columns_tags if tag not in explicit_identifiers]
+    # Selecting the number of rows
+    dataset = dataset.loc[:1000, :] # This is editable
+    # Selection of QI
+    q_identifiers_list_string = ["sex", "age", "education", "nativeCountry"] # this is editable
+    q_identifiers_list = list(range(1, len(q_identifiers_list_string)+1))
+    generalization_levels = []
+    for qi in q_identifiers_list_string:
+        path = str(
+            "datasets/adult/hierarchies/adult_hierarchy_{}.csv").format(str(qi))
+        df = pd.read_csv(path, header=None, sep=(";"), dtype=str)
+        generalization_levels.append(len(df.columns))
+        del df
+    print(generalization_levels)
+    
+    cutted_columns_tags = [tag for tag in all_columns_tags if tag not in q_identifiers_list_string]
+    cutted_columns = dataset.loc[:, cutted_columns_tags]
+    dataset = dataset.drop(cutted_columns_tags, axis=1)
 
     _log("[LOG] Dataset loaded")
     print(dataset)
@@ -529,31 +543,15 @@ if __name__ == "__main__":
     is_suppression_enabled = False
     _log("[LOG] Started with k-anonimity: %s" % k_anonimity)
 
-    # adult
-    q_identifiers_list_string = ["sex", "age", "education", "nativeCountry"]
-    q_identifiers_list = [1, 2, 3, 4]
-    generalization_levels = [2, 5, 4, 3]
-    """ q_identifiers_list_string = ["sex", "age", "education", "nativeCountry", "maritalStatus", "occupation", "race"]
-    q_identifiers_list = [1, 2, 3, 4, 5, 6, 7]
-    generalization_levels = [2, 5, 4, 3, 3, 3, 2] """
 
     _log("[LOG] Quasi-identifier to anonymize: %s" % q_identifiers_list_string)
 
-    # datafly
-    # q_identifiers_list_string = ["age", "city_birth", "zip_code"]
-    # generalization_levels = [4, 4, 6]
-
-    # paper
-    # q_identifiers_list_string = ["birthdate", "sex", "zip_code"]
-    # generalization_levels = [2, 2, 3]
-
-    # ...................................
 
     # ............. Plot .................
-    """ for attr in q_identifiers_list_string:
+    for attr in q_identifiers_list_string:
         sns.displot(dataset, x=attr)
     plt.show()
-    _log("[LOG] Plotted the distribution of each QI") """
+    _log("[LOG] Plotted the distribution of each QI")
 
     # PREPARATION OF VARIABLES AND STRUCTURES
 
