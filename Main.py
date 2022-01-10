@@ -113,25 +113,27 @@ def graph_generation(s: list, edges: list):
 
     candidate_edges = []
     for p in range(len(newGraph.nodes)):
-        print("         nodo1 "+ str(p)+"/"+str(len(newGraph.nodes)-1))
+        print("         node " + str(p) + " of " +
+              str(len(newGraph.nodes) - 1))
         for q in range(len(newGraph.nodes)):
-            if(sum(newGraph.nodes[p].generalization_level)+1 == sum(newGraph.nodes[q].generalization_level)):
+            if (sum(newGraph.nodes[p].generalization_level) + 1 == sum(
+                    newGraph.nodes[q].generalization_level)):
                 #print("nodo2 "+ str(q)+"/"+str(len(newGraph.nodes)-1))
                 for e in range(len(edges)):
                     #print("arco1 "+ str(e)+"/"+str(len(edges)-1))
-                        for f in range(len(edges)):
-                                #print("arco2 "+ str(f)+"/"+str(len(edges)-1))
-                                if (edges[e][0] == newGraph.nodes[p].parent1 and edges[e][1] == newGraph.nodes[q].parent1 and
-                                    edges[f][0] == newGraph.nodes[p].parent2 and edges[f][1] == newGraph.nodes[q].parent2) or \
-                                    (edges[e][0] == newGraph.nodes[p].parent1 and edges[e][1] == newGraph.nodes[q].parent1 and
-                                    newGraph.nodes[p].parent2 == newGraph.nodes[q].parent2) or \
-                                    (edges[e][0] == newGraph.nodes[p].parent2 and edges[e][1] == newGraph.nodes[q].parent2 and
-                                    newGraph.nodes[p].parent1 == newGraph.nodes[q].parent1):
+                    for f in range(len(edges)):
+                        #print("arco2 "+ str(f)+"/"+str(len(edges)-1))
+                        if (edges[e][0] == newGraph.nodes[p].parent1 and edges[e][1] == newGraph.nodes[q].parent1 and
+                            edges[f][0] == newGraph.nodes[p].parent2 and edges[f][1] == newGraph.nodes[q].parent2) or \
+                            (edges[e][0] == newGraph.nodes[p].parent1 and edges[e][1] == newGraph.nodes[q].parent1 and
+                            newGraph.nodes[p].parent2 == newGraph.nodes[q].parent2) or \
+                            (edges[e][0] == newGraph.nodes[p].parent2 and edges[e][1] == newGraph.nodes[q].parent2 and
+                            newGraph.nodes[p].parent1 == newGraph.nodes[q].parent1):
 
-                                    candidate_edges.append(
-                                        [newGraph.nodes[p].id, newGraph.nodes[q].id])
-                                    done = True
-            else: 
+                            candidate_edges.append(
+                                [newGraph.nodes[p].id, newGraph.nodes[q].id])
+                            done = True
+            else:
                 continue
 
     unique_result_edges = []
@@ -217,14 +219,6 @@ def check_k_anonimity(node: Node):
     Returns:
         [bool]: boolean value [True - if k-anonymous, False - if not k-anonymous]
     """
-    """ is_k_anon = True
-    for col, row in node.frequency_set.iteritems():
-        if col == "counts":
-            for el in row:
-                if(el < k_anonimity):
-                    is_k_anon = False
-                    break
-    return is_k_anon """
     is_k_anon = True
     n_suppressed_rows = 0
     dict_records = node.frequency_set.to_dict("records")
@@ -475,7 +469,7 @@ def core_incognito(dataset, qi_list):
                         qi_dict_node[tag] = qi_dict_node.pop(id2)
             dataset_generalized = generalize_data(dataset, qi_dict_node,
                                                   generalizations_table)
-            
+
             db = dataset_generalized
             dataset_generalized = pd.concat(
                 [dataset_generalized, cutted_columns], axis=1)
@@ -498,7 +492,7 @@ def core_incognito(dataset, qi_list):
             for el in graph.nodes:
                 if el.marked == True:
                     el.print_info()
-            print("----------------------------------")        
+            print("----------------------------------")
             _log("[LOG] Best generalization: ", endl=False)
             node.print_info()
             print("----------------------------------")
@@ -510,13 +504,7 @@ def core_incognito(dataset, qi_list):
                 sep=',',
                 mode='w')
             print("----------------------------------")
-            get_frequency_set_root(db).to_csv(
-                r'datasets/results/fre.csv',
-                index=None,
-                sep=',',
-                mode='w')
             break
-    return 0
 
 
 # -------------------------------------------------------------------
@@ -548,7 +536,8 @@ if __name__ == "__main__":
     dataset = dataset.loc[:10000, :]  # This is editable
     # Selection of QI
     #"sex", "age", "education","race","maritalStatus","nativeCountry","workclass","occupation","salaryClass"
-    q_identifiers_list_string = ["sex", "age", "education"]  # this is editable
+    q_identifiers_list_string = ["sex", "age", "education",
+                                 "nativeCountry"]  # this is editable
     q_identifiers_list = list(range(1, len(q_identifiers_list_string) + 1))
     generalization_levels = []
     for qi in q_identifiers_list_string:
@@ -584,7 +573,7 @@ if __name__ == "__main__":
 
     # Change if you want plot of th distribution (it will change the execution time)
     plot_distribution = False
-    if(plot_distribution == True):
+    if (plot_distribution):
         # ............. Plot .................
         for attr in q_identifiers_list_string:
             sns.displot(dataset, x=attr)
