@@ -579,13 +579,19 @@ if __name__ == "__main__":
 
     _log("[LOG] Quasi-identifier to anonymize: %s" % q_identifiers_list_string)
 
-    # Decomment if you want plot of th distribution (it will change the execution time)
-    """ # ............. Plot .................
-    for attr in q_identifiers_list_string:
-        sns.displot(dataset, x=attr)
-    plt.show()
-    _log("[LOG] Plotted the distribution of each QI") """
+    # ...................................
+    # DISTRIBUTION ANALYSIS
 
+    # Change if you want plot of th distribution (it will change the execution time)
+    plot_distribution = False
+    if(plot_distribution == True):
+        # ............. Plot .................
+        for attr in q_identifiers_list_string:
+            sns.displot(dataset, x=attr)
+        plt.show()
+        _log("[LOG] Plotted the distribution of each QI")
+
+    # ...................................
     # PREPARATION OF VARIABLES AND STRUCTURES
 
     # getting the QI dictionaries
