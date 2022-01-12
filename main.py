@@ -469,8 +469,6 @@ def core_incognito(dataset, qi_list):
                         qi_dict_node[tag] = qi_dict_node.pop(id2)
             dataset_generalized = generalize_data(dataset, qi_dict_node,
                                                   generalizations_table)
-
-            db = dataset_generalized
             dataset_generalized = pd.concat(
                 [dataset_generalized, cutted_columns], axis=1)
             # Find the query to execute the suppression
@@ -535,9 +533,10 @@ if __name__ == "__main__":
     # Selecting the number of rows
     dataset = dataset.loc[:10000, :]  # This is editable
     # Selection of QI
-    #"sex", "age", "education","race","maritalStatus","nativeCountry","workclass","occupation","salaryClass"
-    q_identifiers_list_string = ["sex", "age", "education",
-                                 "nativeCountry"]  # this is editable
+    #"sex", "age", "education", "race", "maritalStatus", "nativeCountry", "workclass", "occupation", "salaryClass"
+    q_identifiers_list_string = [
+        "sex", "age", "education", "race", "maritalStatus", "nativeCountry"
+    ]  # this is editable
     q_identifiers_list = list(range(1, len(q_identifiers_list_string) + 1))
     generalization_levels = []
     for qi in q_identifiers_list_string:
